@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TensorNetwork &mdash; TensorTools  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=eafc0fe6" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="../_static/doctools.js?v=888ff710"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            TensorTools
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">TensorTools</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Module code</a></li>
+      <li class="breadcrumb-item active">TensorNetwork</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for TensorNetwork</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+<span class="kn">import</span> <span class="nn">qiskit</span>
+<span class="kn">import</span> <span class="nn">tensornetwork</span> <span class="k">as</span> <span class="nn">tn</span>
+<span class="kn">import</span> <span class="nn">qiskit.quantum_info</span> <span class="k">as</span> <span class="nn">qi</span>
+<span class="kn">from</span> <span class="nn">qiskit</span> <span class="kn">import</span> <span class="n">QuantumCircuit</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">wraps</span><span class="p">,</span> <span class="n">partial</span>
+<span class="kn">from</span> <span class="nn">qiskit</span> <span class="kn">import</span> <span class="n">Aer</span><span class="p">,</span> <span class="n">transpile</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">mpl</span>
+<span class="kn">import</span> <span class="nn">math</span>
+
+
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="n">warnings</span><span class="o">.</span><span class="n">filterwarnings</span><span class="p">(</span><span class="s2">&quot;ignore&quot;</span><span class="p">)</span>
+<span class="n">np</span><span class="o">.</span><span class="n">set_printoptions</span><span class="p">(</span><span class="n">linewidth</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">use_deep_copy</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    decorator, if used a new deepcopy is used for all function arguments (can be used if function arguments are mutable)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">args_copy</span> <span class="o">=</span> <span class="p">[</span><span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">args</span><span class="p">]</span>
+        <span class="n">kwargs_copy</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+        <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args_copy</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs_copy</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">wrapper</span>
+
+
+<div class="viewcode-block" id="TensorNetwork">
+<a class="viewcode-back" href="../index.html#TensorNetwork.TensorNetwork">[docs]</a>
+<span class="k">class</span> <span class="nc">TensorNetwork</span><span class="p">:</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_qubits</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">init_qubits</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">edges</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_qubits</span> <span class="o">=</span> <span class="n">num_qubits</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">init_states</span> <span class="o">=</span> <span class="p">[</span><span class="n">tn</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">TensorNetwork</span><span class="o">.</span><span class="n">get_zero_qb</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">name</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;IQb_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_qubits</span><span class="p">)]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">init_qubits</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">init_qubits</span> <span class="o">=</span> <span class="p">[</span><span class="n">istate</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">istate</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_states</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">init_qubits</span> <span class="o">=</span> <span class="n">init_qubits</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">out_edges</span> <span class="o">=</span> <span class="p">[]</span>
+
+<div class="viewcode-block" id="TensorNetwork.get_p_mat">
+<a class="viewcode-back" href="../index.html#TensorNetwork.TensorNetwork.get_p_mat">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">get_p_mat</span><span class="p">(</span><span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        returns a permutation matrix for conversion from/to qiskit</span>
+
+<span class="sd">        :param n: number of qubits (size will be 2^n)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">p_mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="mi">2</span> <span class="o">**</span> <span class="n">n</span><span class="p">,</span> <span class="mi">2</span> <span class="o">**</span> <span class="n">n</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span> <span class="o">**</span> <span class="n">n</span><span class="p">):</span>
+            <span class="n">bit</span> <span class="o">=</span> <span class="n">i</span>
+            <span class="n">revs_i</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">bit</span> <span class="o">&amp;</span> <span class="mb">0b1</span><span class="p">:</span>
+                    <span class="n">revs_i</span> <span class="o">+=</span> <span class="mi">1</span> <span class="o">&lt;&lt;</span> <span class="p">(</span><span class="n">n</span> <span class="o">-</span> <span class="n">j</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="n">bit</span> <span class="o">=</span> <span class="n">bit</span> <span class="o">&gt;&gt;</span> <span class="mi">1</span>
+            <span class="n">p_mat</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">revs_i</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="n">p_mat</span></div>
+
+
+<div class="viewcode-block" id="TensorNetwork.get_from_qiskit_circuit">
+<a class="viewcode-back" href="../index.html#TensorNetwork.TensorNetwork.get_from_qiskit_circuit">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">get_from_qiskit_circuit</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">qc</span><span class="p">:</span> <span class="n">QuantumCircuit</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        constructs TensorNetwork object from qiskit circuit</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">num_qubits</span> <span class="o">=</span> <span class="n">qc</span><span class="o">.</span><span class="n">num_qubits</span>
+        <span class="n">dumped_qc</span> <span class="o">=</span> <span class="n">TensorNetwork</span><span class="o">.</span><span class="n">dump_qiskit_circuit</span><span class="p">(</span><span class="n">qc</span><span class="p">)</span>
+        <span class="n">tensor_network</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">num_qubits</span><span class="p">)</span>
+        <span class="n">last_elements</span> <span class="o">=</span> <span class="n">tensor_network</span><span class="o">.</span><span class="n">init_qubits</span>
+        <span class="c1"># reverse because qcs must be analyzed backwards</span>
+        <span class="k">for</span> <span class="n">gate</span> <span class="ow">in</span> <span class="n">dumped_qc</span><span class="p">:</span>
+            <span class="n">node</span> <span class="o">=</span> <span class="n">tn</span><span class="o">.</span><span class="n">Node</span><span class="p">(</span><span class="n">TensorNetwork</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">TensorNetwork</span><span class="o">.</span><span class="n">convert_from_qiskit_matrix</span><span class="p">(</span><span class="n">gate</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">])),</span> <span class="n">name</span><span class="o">=</span><span class="n">gate</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">])</span>
+            <span class="k">for</span> <span class="n">e</span><span class="p">,</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">gate</span><span class="p">[</span><span class="s2">&quot;ind&quot;</span><span class="p">]):</span>
+                <span class="n">edge</span> <span class="o">=</span> <span class="n">tn</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">last_elements</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">node</span><span class="p">[</span><span class="n">e</span><span class="p">])</span>
+                <span class="n">tensor_network</span><span class="o">.</span><span class="n">edges</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">edge</span><span class="p">)</span>
+                <span class="n">last_elements</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">node</span><span class="p">[</span><span class="n">e</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">gate</span><span class="p">[</span><span class="s2">&quot;ind&quot;</span><span class="p">])]</span>
+            <span class="n">tensor_network</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+        <span class="n">tensor_network</span><span class="o">.</span><span class="n">out_edges</span> <span class="o">=</span> <span class="n">last_elements</span>
+
+        <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">tensor_network</span><span class="o">.</span><span class="n">init_states</span><span class="p">:</span>
+            <span class="n">tn</span><span class="o">.</span><span class="n">remove_node</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">tensor_network</span></div>
+
+
+<div class="viewcode-block" id="TensorNetwork.dump_qiskit_circuit">
+<a class="viewcode-back" href="../index.html#TensorNetwork.TensorNetwork.dump_qiskit_circuit">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">dump_qiskit_circuit</span><span class="p">(</span><span class="n">qc</span><span class="p">:</span> <span class="n">qiskit</span><span class="o">.</span><span class="n">QuantumCircuit</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        dumps qiskit circuit object</span>
+
+<span class="sd">        :param qc: qiskit circuit</span>
+<span class="sd">        :return: list(dict(&#39;name&#39;:str, &#39;data&#39;:np.array, &#39;ind&#39;:list(int)))</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="p">[{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">gate</span><span class="o">.</span><span class="n">operation</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;ind&quot;</span><span class="p">:</span> <span class="nb">sorted</span><span class="p">([</span><span class="n">qb</span><span class="o">.</span><span class="n">index</span> <span class="k">for</span> <span class="n">qb</span> <span class="ow">in</span> <span class="n">gate</span><span class="o">.</span><span class="n">qubits</span><span class="p">]),</span>
+                 <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="n">qi</span><span class="o">.</span><span class="n">Operator</span><span class="p">(</span><span class="n">gate</span><span class="o">.</span><span class="n">operation</span><span class="p">)</span><span class="o">.</span><span class="n">data</span><span class="p">}</span> <span class="k">for</span> <span class="n">e</span><span class="p">,</span> <span class="n">gate</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">qc</span><span class="p">)</span> <span class="k">if</span> <span class="n">gate</span><span class="o">.</span><span class="n">operation</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="s2">&quot;measure&quot;</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="TensorNetwork.pack">
+<a class="viewcode-back" href="../index.html#TensorNetwork.TensorNetwork.pack">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">pack</span><span class="p">(</span><span class="n">mat</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        reshapes (nxn)-matrix into appropriate n-rank tensor</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">mat</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">*</span><span class="p">(</span><span class="mi">2</span><span class="p">,)</span><span class="o">*</span><span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log2</span><span class="p">(</span><span class="n">mat</span><span class="o">.</span><span class="n">size</span><span class="p">)))</span></div>
+
+
+<div class="viewcode-block" id="TensorNetwork.unpack">
+<a class="viewcode-back" href="../index.html#TensorNetwork.TensorNetwork.unpack">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">unpack</span><span class="p">(</span><span class="n">mat</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        reshapes n-rank tensor into appropriate (nxn)-matrix</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">mat</span><span class="o">.</span><span class="n">size</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">mat</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="TensorNetwork.get_zero_qb">
+<a class="viewcode-back" href="../index.html#TensorNetwork.TensorNetwork.get_zero_qb">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">get_zero_qb</span><span class="p">(</span><span class="n">size</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+
+        <span class="n">qb</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">2</span> <span class="o">**</span> <span class="n">size</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">complex</span><span class="p">)</span>
+        <span class="n">qb</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="n">qb</span></div>
+
+
+<div class="viewcode-block" id="TensorNetwork.fully_contract">
+<a class="viewcode-back" href="../index.html#TensorNetwork.TensorNetwork.fully_contract">[docs]</a>
+    <span class="nd">@use_deep_copy</span>
+    <span class="k">def</span> <span class="nf">fully_contract</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">remove_inputs</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tn</span><span class="o">.</span><span class="n">AbstractNode</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        contracts the entire network into a single node (currently using auto contractor)</span>
+
+<span class="sd">        :param remove_inputs: remove input qubits if connected to the network</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">remove_inputs</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_states</span><span class="p">:</span>
+                <span class="n">tn</span><span class="o">.</span><span class="n">remove_node</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+        <span class="c1">#res = tn.contractors.optimal(self.nodes, tn.get_all_dangling(self.nodes))</span>
+        <span class="n">all_nodes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">edges</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_qubits</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">tn</span><span class="o">.</span><span class="n">contractors</span><span class="o">.</span><span class="n">auto</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">,</span> <span class="n">tn</span><span class="o">.</span><span class="n">get_all_dangling</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">res</span></div>
+
+
+<div class="viewcode-block" id="TensorNetwork.set_init_qubits">
+<a class="viewcode-back" href="../index.html#TensorNetwork.TensorNetwork.set_init_qubits">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_init_qubits</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">init_qubits</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">init_qubits</span> <span class="o">=</span> <span class="n">init_qubits</span></div>
+
+
+<div class="viewcode-block" id="TensorNetwork.convert_from_qiskit_matrix">
+<a class="viewcode-back" href="../index.html#TensorNetwork.TensorNetwork.convert_from_qiskit_matrix">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">convert_from_qiskit_matrix</span><span class="p">(</span><span class="n">mat</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        transforms matrix from qiskit shape to TensorNetwork shape using permutation matrix</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">n</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log2</span><span class="p">(</span><span class="n">mat</span><span class="o">.</span><span class="n">size</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">p_mat</span> <span class="o">=</span> <span class="n">TensorNetwork</span><span class="o">.</span><span class="n">get_p_mat</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+        <span class="n">mat</span> <span class="o">=</span> <span class="n">p_mat</span> <span class="o">@</span> <span class="n">mat</span>
+        <span class="k">return</span> <span class="n">mat</span></div>
+
+
+<div class="viewcode-block" id="TensorNetwork.convert_to_qiskit_matrix">
+<a class="viewcode-back" href="../index.html#TensorNetwork.TensorNetwork.convert_to_qiskit_matrix">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">convert_to_qiskit_matrix</span><span class="p">(</span><span class="n">mat</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        transforms matrix from Tensornetwork shape to qiskit shape using permutation matrix</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log2</span><span class="p">(</span><span class="n">mat</span><span class="o">.</span><span class="n">size</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="c1"># p_mat_inv = np.linalg.inv(TensorNetwork.get_p_mat(n))</span>
+        <span class="n">p_mat</span> <span class="o">=</span> <span class="n">TensorNetwork</span><span class="o">.</span><span class="n">get_p_mat</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+        <span class="n">mat</span> <span class="o">=</span> <span class="n">p_mat</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">mat</span>
+        <span class="k">return</span> <span class="n">mat</span></div>
+
+
+<div class="viewcode-block" id="TensorNetwork.partial_contract_by_name">
+<a class="viewcode-back" href="../index.html#TensorNetwork.TensorNetwork.partial_contract_by_name">[docs]</a>
+    <span class="nd">@use_deep_copy</span>
+    <span class="c1"># self.out_edges is incorrect after application</span>
+    <span class="k">def</span> <span class="nf">partial_contract_by_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_name_1</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">node_name_2</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">TensorNetwork</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        finds the edge connecting two nodes and contracts it</span>
+
+<span class="sd">        :param node_name_1:</span>
+<span class="sd">        :param node_name_2:</span>
+<span class="sd">        :return: new TensorNetwork, name of new node (&#39;node_name_1+node_name_2&#39;)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">node1</span><span class="p">,</span> <span class="n">node2</span> <span class="o">=</span> <span class="p">(</span><span class="nb">next</span><span class="p">((</span><span class="n">node</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_states</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span> <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">node_name</span><span class="p">),</span> <span class="kc">None</span><span class="p">)</span> <span class="k">for</span> <span class="n">node_name</span> <span class="ow">in</span> <span class="p">(</span><span class="n">node_name_1</span><span class="p">,</span> <span class="n">node_name_2</span><span class="p">))</span>
+        <span class="k">assert</span> <span class="n">node1</span> <span class="ow">and</span> <span class="n">node2</span>
+        <span class="n">new_node_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">node_name_1</span><span class="si">}</span><span class="s2">+</span><span class="si">{</span><span class="n">node_name_2</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">tn</span><span class="o">.</span><span class="n">contract_between</span><span class="p">(</span><span class="n">node1</span><span class="p">,</span> <span class="n">node2</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">new_node_name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">node1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">node2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">res</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="p">,</span> <span class="n">new_node_name</span></div>
+
+
+<div class="viewcode-block" id="TensorNetwork.get_node_by_name">
+<a class="viewcode-back" href="../index.html#TensorNetwork.TensorNetwork.get_node_by_name">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_node_by_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tn</span><span class="o">.</span><span class="n">AbstractNode</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        getter for nodes by name</span>
+
+<span class="sd">        :param name:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">next</span><span class="p">((</span><span class="n">obj</span> <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_states</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span> <span class="k">if</span> <span class="n">obj</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">name</span><span class="p">),</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="TensorNetwork.perform_svd_on_node">
+<a class="viewcode-back" href="../index.html#TensorNetwork.TensorNetwork.perform_svd_on_node">[docs]</a>
+    <span class="nd">@use_deep_copy</span>
+    <span class="k">def</span> <span class="nf">perform_svd_on_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">max_singular_values</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_truncation_err</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TensorNetwork</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        performs a svd on a node given by name</span>
+
+<span class="sd">        :param name:</span>
+<span class="sd">        :param max_singular_values:</span>
+<span class="sd">        :param max_truncation_err:</span>
+<span class="sd">        :return: TensorNetwork with new split node</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">node</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_node_by_name</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">truncated</span><span class="p">)</span> <span class="o">=</span> <span class="n">tn</span><span class="o">.</span><span class="n">split_node_full_svd</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">left_edges</span><span class="o">=</span><span class="n">node</span><span class="p">[:</span><span class="nb">len</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">edges</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span><span class="p">],</span> <span class="n">right_edges</span><span class="o">=</span><span class="n">node</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">edges</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span><span class="p">:],</span>
+                                                      <span class="n">max_singular_values</span><span class="o">=</span><span class="n">max_singular_values</span><span class="p">,</span> <span class="n">max_truncation_err</span><span class="o">=</span><span class="n">max_truncation_err</span><span class="p">,</span>
+                                                      <span class="n">left_name</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;u-</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">middle_name</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;s-</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">right_name</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;v-</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span> <span class="o">+=</span> <span class="p">[</span><span class="n">u</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">v</span><span class="p">]</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+
+<div class="viewcode-block" id="TensorNetwork.get_graph">
+<a class="viewcode-back" href="../index.html#TensorNetwork.TensorNetwork.get_graph">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_graph</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">tn</span><span class="o">.</span><span class="n">to_graphviz</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">)</span><span class="o">.</span><span class="n">render</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="TensorNetwork.simulate_and_draw_result_comparison">
+<a class="viewcode-back" href="../index.html#TensorNetwork.TensorNetwork.simulate_and_draw_result_comparison">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">simulate_and_draw_result_comparison</span><span class="p">(</span><span class="n">qc1</span><span class="p">:</span> <span class="n">qiskit</span><span class="o">.</span><span class="n">QuantumCircuit</span><span class="p">,</span> <span class="n">qc2</span><span class="p">:</span> <span class="n">qiskit</span><span class="o">.</span><span class="n">QuantumCircuit</span><span class="p">,</span> <span class="n">shots</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Simulates two qiskit.QuantumCircuit objects using aer_simulator and draws a comparison histogram</span>
+
+<span class="sd">        :param qc1:</span>
+<span class="sd">        :param qc2:</span>
+<span class="sd">        :param shots:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">simulator</span> <span class="o">=</span> <span class="n">Aer</span><span class="o">.</span><span class="n">get_backend</span><span class="p">(</span><span class="s2">&quot;aer_simulator&quot;</span><span class="p">)</span>
+        <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">QuantumCircuit</span><span class="o">.</span><span class="n">measure_all</span><span class="p">,</span> <span class="p">[</span><span class="n">qc1</span><span class="p">,</span> <span class="n">qc2</span><span class="p">]))</span>
+        <span class="n">transpile_with_simulator</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">transpile</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="n">simulator</span><span class="p">)</span>
+        <span class="n">transpiled</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">transpile_with_simulator</span><span class="p">,</span> <span class="p">[</span><span class="n">qc1</span><span class="p">,</span> <span class="n">qc2</span><span class="p">]))</span>
+        <span class="n">sim_with_args</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">simulator</span><span class="o">.</span><span class="n">run</span><span class="p">,</span> <span class="n">shots</span><span class="o">=</span><span class="n">shots</span><span class="p">,</span> <span class="n">memory</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">sim_res</span> <span class="o">=</span> <span class="p">[</span><span class="n">run</span><span class="o">.</span><span class="n">result</span><span class="p">()</span> <span class="k">for</span> <span class="n">run</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">sim_with_args</span><span class="p">,</span> <span class="n">transpiled</span><span class="p">))]</span>
+        <span class="n">data1</span><span class="p">,</span> <span class="n">data2</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">sim_res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get_memory</span><span class="p">(</span><span class="n">qc1</span><span class="p">)),</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">sim_res</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">get_memory</span><span class="p">(</span><span class="n">qc2</span><span class="p">))</span>
+        <span class="n">TensorNetwork</span><span class="o">.</span><span class="n">draw_comparison_diagram</span><span class="p">(</span><span class="n">data1</span><span class="p">,</span> <span class="n">data2</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="TensorNetwork.draw_comparison_diagram">
+<a class="viewcode-back" href="../index.html#TensorNetwork.TensorNetwork.draw_comparison_diagram">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">draw_comparison_diagram</span><span class="p">(</span><span class="n">data1</span><span class="p">,</span> <span class="n">data2</span><span class="p">):</span>
+        <span class="n">fig</span><span class="p">,</span> <span class="p">(</span><span class="n">ax1</span><span class="p">,</span> <span class="n">ax2</span><span class="p">)</span> <span class="o">=</span> <span class="n">mpl</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">ax1</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">data1</span><span class="p">)</span>
+        <span class="n">ax1</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;QC 1&quot;</span><span class="p">)</span>
+        <span class="n">ax2</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">data2</span><span class="p">)</span>
+        <span class="n">ax2</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;QC 2&quot;</span><span class="p">)</span>
+        <span class="n">mpl</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+        <span class="n">mpl</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="TensorNetwork.qiskit_circuit_to_unitary">
+<a class="viewcode-back" href="../index.html#TensorNetwork.TensorNetwork.qiskit_circuit_to_unitary">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">qiskit_circuit_to_unitary</span><span class="p">(</span><span class="n">qc</span><span class="p">:</span> <span class="n">qiskit</span><span class="o">.</span><span class="n">QuantumCircuit</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        gets the unitary of a quantum circuit using qiskits unitary simulator</span>
+
+<span class="sd">        :param qc:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">simulator</span> <span class="o">=</span> <span class="n">Aer</span><span class="o">.</span><span class="n">get_backend</span><span class="p">(</span><span class="s1">&#39;unitary_simulator&#39;</span><span class="p">)</span>
+        <span class="n">job</span> <span class="o">=</span> <span class="n">simulator</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">transpile</span><span class="p">(</span><span class="n">qc</span><span class="p">,</span> <span class="n">simulator</span><span class="p">))</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">job</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">result</span><span class="o">.</span><span class="n">get_unitary</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="TensorNetwork.get_diff_tensor">
+<a class="viewcode-back" href="../index.html#TensorNetwork.TensorNetwork.get_diff_tensor">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">get_diff_tensor</span><span class="p">(</span><span class="n">t1</span><span class="p">,</span> <span class="n">t2</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mf">1E-10</span><span class="p">):</span>
+
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        returns a tensor t1-t2, entries are set to 0 if below threshold</span>
+
+<span class="sd">        :param t1:</span>
+<span class="sd">        :param t2:</span>
+<span class="sd">        :param threshold:</span>
+<span class="sd">        :return: diff tensor</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">diff</span> <span class="o">=</span> <span class="n">t1</span> <span class="o">-</span> <span class="n">t2</span>
+        <span class="n">diff</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">diff</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">threshold</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">return</span> <span class="n">diff</span></div>
+
+
+<div class="viewcode-block" id="TensorNetwork.contract_backwards">
+<a class="viewcode-back" href="../index.html#TensorNetwork.TensorNetwork.contract_backwards">[docs]</a>
+    <span class="k">def</span> <span class="nf">contract_backwards</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        uses TensorNetwork.partial_contract_by_name to contract the entire network starting from the back</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">new_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">name</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="bp">self</span>
+        <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
+            <span class="n">t</span><span class="p">,</span> <span class="n">new_name</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">partial_contract_by_name</span><span class="p">(</span><span class="n">new_name</span><span class="p">,</span> <span class="n">node</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">get_node_by_name</span><span class="p">(</span><span class="n">new_name</span><span class="p">)</span><span class="o">.</span><span class="n">tensor</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">t</span></div>
+</div>
+
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+
+    <span class="n">qc</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">qc</span><span class="o">.</span><span class="n">h</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">qc</span><span class="o">.</span><span class="n">cx</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>  <span class="c1"># 2 3 0 1</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="n">qc</span><span class="p">)</span>
+
+    <span class="n">t1</span> <span class="o">=</span> <span class="n">TensorNetwork</span><span class="o">.</span><span class="n">qiskit_circuit_to_unitary</span><span class="p">(</span><span class="n">qc</span><span class="p">)</span><span class="o">.</span><span class="n">data</span>
+    <span class="n">dumped_qc</span> <span class="o">=</span> <span class="n">TensorNetwork</span><span class="o">.</span><span class="n">dump_qiskit_circuit</span><span class="p">(</span><span class="n">qc</span><span class="p">)</span>
+
+    <span class="n">tensor_network</span> <span class="o">=</span> <span class="n">TensorNetwork</span><span class="o">.</span><span class="n">get_from_qiskit_circuit</span><span class="p">(</span><span class="n">qc</span><span class="p">)</span>
+    <span class="c1">#t2 = tensor_network.convert_to_qiskit_matrix(tensor_network.unpack(tensor_network.fully_contract(remove_inputs=False).tensor))</span>
+    <span class="n">t2</span> <span class="o">=</span> <span class="n">tensor_network</span><span class="o">.</span><span class="n">contract_backwards</span><span class="p">()</span>
+    <span class="n">qc2</span> <span class="o">=</span> <span class="n">QuantumCircuit</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">qc2</span><span class="o">.</span><span class="n">unitary</span><span class="p">(</span><span class="n">t2</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+
+    <span class="n">TensorNetwork</span><span class="o">.</span><span class="n">simulate_and_draw_result_comparison</span><span class="p">(</span><span class="n">qc</span><span class="p">,</span> <span class="n">qc2</span><span class="p">,</span> <span class="n">shots</span><span class="o">=</span><span class="mi">10000</span><span class="p">)</span>
+
+
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">t1</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">t2</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">diff</span> <span class="o">=</span> <span class="n">TensorNetwork</span><span class="o">.</span><span class="n">get_diff_tensor</span><span class="p">(</span><span class="n">t1</span><span class="p">,</span> <span class="n">t2</span><span class="p">)</span>
+    <span class="n">zero_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">zero_matrix</span><span class="p">,</span> <span class="n">diff</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;True&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;False&quot;</span><span class="p">)</span>
+
+
+    <span class="c1">#</span>
+    <span class="c1"># t2 = tensornetwork.fix_shape2(tensornetwork.get_tensor_of_backwards_contracted_gates())</span>
+    <span class="c1"># #t2 = tensornetwork.translate_qiskit_data(t2, 2)</span>
+    <span class="c1"># print(t1)</span>
+    <span class="c1"># print(&quot;\n&quot;)</span>
+    <span class="c1"># print(t2)</span>
+
+
+    <span class="c1">#t2 = t2.fix_shape2(t2.get_node_by_name(&quot;cx-0&quot;).tensor)</span>
+    <span class="c1">#print(t2.convert_from_qiskit_matrix(t1))</span>
+    <span class="c1">#d_edges = list(tn.get_subgraph_dangling(t2.nodes))</span>
+    <span class="c1">#d_edges = list(reversed(sorted(d_edges, key=lambda e: e.axis1)))</span>
+    <span class="c1">#d_edges = list(sorted(d_edges, key=lambda e: e.axis1))</span>
+    <span class="c1">#d_edges = [d_edges[3], d_edges[2], d_edges[1], d_edges[0]]</span>
+    <span class="c1">#print(d_edges)</span>
+    <span class="c1">#c1 = tn.contractors.optimal(t2.nodes, d_edges)</span>
+    <span class="c1">#t2 = t2.fix_shape2(c1.tensor)</span>
+
+    <span class="c1">#t2 = TensorNetwork.convert_to_qiskit_matrix(t2)</span>
+    <span class="c1">#t2 = t2.fully_contract(remove_inputs=True)</span>
+    <span class="c1">#t2 = TensorNetwork.fix_shape2(t2.tensor)</span>
+    <span class="c1">#new_name = t2.nodes[-1].name</span>
+    <span class="c1">#for node in reversed(t2.nodes[:-1]):</span>
+    <span class="c1">#    t2, new_name = t2.partial_contract_by_name(new_name, node.name)</span>
+    <span class="c1">#t2 = t2.fix_shape2(t2.get_node_by_name(new_name).tensor)</span>
+
+    <span class="c1">#t2 = tensornetwork.partial_contract_by_name(&quot;unitary-1&quot;, &quot;h-0&quot;)</span>
+    <span class="c1">#t2 = tensornetwork.fix_shape2(t2.get_node_by_name(&quot;unitary-1+h-0&quot;).tensor)</span>
+    <span class="c1">#t2 = tensornetwork.fix_shape2(t2.partial_contract_by_name(&quot;unitary-2+cx-1&quot;, &quot;h-0&quot;).get_node_by_name(&quot;unitary-2+cx-1+h-0&quot;).tensor)</span>
+    <span class="c1">#qc2 = QuantumCircuit(2)</span>
+    <span class="c1">#qc2.unitary(t2, [0, 1])</span>
+
+    <span class="c1">#TensorNetwork.simulate_and_draw_result_comparison(qc, qc2, shots=10000)</span>
+    <span class="c1">#</span>
+    <span class="c1"># print(&quot;\n&quot;, t1, &quot;\n&quot;)</span>
+    <span class="c1"># print(t2, &quot;\n&quot;)</span>
+    <span class="c1"># diff = TensorNetwork.get_diff_tensor(t1, t2)</span>
+    <span class="c1"># zero_matrix = np.zeros((4, 4), dtype=int)</span>
+    <span class="c1"># if np.allclose(zero_matrix, diff):</span>
+    <span class="c1">#     print(&quot;True&quot;)</span>
+    <span class="c1"># else:</span>
+    <span class="c1">#     print(&quot;False&quot;)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Henrik Tscherny.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
