@@ -51,7 +51,7 @@ class TensorNetwork:
 
     def populate_with_data(self):
         """
-        constructs TensorNetwork object from qiskit circuit
+        fills TensorNetwork with data by using adapter
 
         """
         dump = self.adapter.dump()
