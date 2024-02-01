@@ -24,3 +24,10 @@ TensorNetwork.py
     :members:
     :undoc-members:
 
+QiskitAdapter.py
+-------------------
+
+.. autoclass:: QiskitAdapter.QiskitAdapter
+    :members:
+    :undoc-members:
+

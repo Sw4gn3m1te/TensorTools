@@ -1,4 +1,7 @@
 from __future__ import annotations
+
+import functools
+
 import qiskit
 import tensornetwork as tn
 import qiskit.quantum_info as qi
@@ -6,10 +9,11 @@ from qiskit import QuantumCircuit
 import numpy as np
 import copy
 from functools import wraps, partial
-from qiskit import Aer, transpile
+from itertools import permutations
+from qiskit import Aer, transpile, execute
 import matplotlib.pyplot as mpl
 import math
-
+from QiskitAdapter import QiskitAdapter
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -32,7 +36,7 @@ def use_deep_copy(func):
 
 class TensorNetwork:
 
-    def __init__(self, num_qubits: int, init_qubits=None):
+    def __init__(self, num_qubits: int, init_qubits=None, adapter: QiskitAdapter = None):
         self.nodes = []
         self.edges = []
         self.num_qubits = num_qubits
@@ -42,79 +46,35 @@ class TensorNetwork:
         else:
             self.init_qubits = init_qubits
         self.out_edges = []
+        self.adapter = adapter
+        self.populate_with_data()
 
-    @staticmethod
-    def get_p_mat(n: int) -> np.array:
-        """
-        returns a permutation matrix for conversion from/to qiskit
-
-        :param n: number of qubits (size will be 2^n)
-        """
-        p_mat = np.zeros([2 ** n, 2 ** n])
-        for i in range(2 ** n):
-            bit = i
-            revs_i = 0
-            for j in range(n):
-                if bit & 0b1:
-                    revs_i += 1 << (n - j - 1)
-                bit = bit >> 1
-            p_mat[i, revs_i] = 1
-        return p_mat
-
-    @classmethod
-    def get_from_qiskit_circuit(cls, qc: QuantumCircuit):
+    def populate_with_data(self):
         """
         constructs TensorNetwork object from qiskit circuit
 
         """
-        num_qubits = qc.num_qubits
-        dumped_qc = TensorNetwork.dump_qiskit_circuit(qc)
-        tensor_network = cls(num_qubits)
-        last_elements = tensor_network.init_qubits
-        # reverse because qcs must be analyzed backwards
-        for gate in dumped_qc:
-            node = tn.Node(TensorNetwork.pack(TensorNetwork.convert_from_qiskit_matrix(gate["data"])), name=gate["name"])
-            for e, i in enumerate(gate["ind"]):
+        dump = self.adapter.dump()
+        self.num_qubits = dump["num_qb"]
+        last_elements = self.init_qubits
+        for gate in dump["data"]:
+            m = gate["mat"]
+            inds = gate["inds"]
+            m = self.adapter.pack(m)
+            m = self.adapter.align(m, inds)
+            m = self.adapter.unpack(m)
+            m = self.adapter.convert_from_qiskit_matrix(m)
+            m = self.adapter.pack(m)
+            node = tn.Node(m, name=gate["name"])
+            for e, i in enumerate(inds):
                 edge = tn.connect(last_elements[i], node[e])
-                tensor_network.edges.append(edge)
-                last_elements[i] = node[e + len(gate["ind"])]
-            tensor_network.nodes.append(node)
-        tensor_network.out_edges = last_elements
+                self.edges.append(edge)
+                last_elements[i] = node[e + len(inds)]
+            self.nodes.append(node)
+        self.out_edges = last_elements
 
-        for node in tensor_network.init_states:
+        for node in self.init_states:
             tn.remove_node(node)
-
-        return tensor_network
-
-    @staticmethod
-    def dump_qiskit_circuit(qc: qiskit.QuantumCircuit) -> list[dict]:
-
-        """
-        dumps qiskit circuit object
-
-        :param qc: qiskit circuit
-        :return: list(dict('name':str, 'data':np.array, 'ind':list(int)))
-        """
-
-        return [{"name": f"{gate.operation.name}-{e}", "ind": sorted([qb.index for qb in gate.qubits]),
-                 "data": qi.Operator(gate.operation).data} for e, gate in enumerate(qc) if gate.operation.name != "measure"]
-
-    @staticmethod
-    def pack(mat: np.ndarray) -> np.array:
-        """
-
-        reshapes (nxn)-matrix into appropriate n-rank tensor
-        """
-        return mat.reshape(*(2,)*int(np.log2(mat.size)))
-
-    @staticmethod
-    def unpack(mat: np.ndarray) -> np.array:
-        """
-
-        reshapes n-rank tensor into appropriate (nxn)-matrix
-        """
-        n = int(math.sqrt(mat.size))
-        return mat.reshape(n, n)
 
     @staticmethod
     def get_zero_qb(size: int):
@@ -137,33 +97,6 @@ class TensorNetwork:
         all_nodes = self.edges + self.init_qubits
         res = tn.contractors.auto(self.nodes, tn.get_all_dangling(self.nodes))
         return res
-
-    def set_init_qubits(self, init_qubits):
-        self.init_qubits = init_qubits
-
-    @staticmethod
-    def convert_from_qiskit_matrix(mat: np.array) -> np.array:
-        """
-        transforms matrix from qiskit shape to TensorNetwork shape using permutation matrix
-
-        """
-
-        n = int(np.log2(mat.size)/2)
-        p_mat = TensorNetwork.get_p_mat(n)
-        mat = p_mat @ mat
-        return mat
-
-    @staticmethod
-    def convert_to_qiskit_matrix(mat: np.array) -> np.array:
-        """
-        transforms matrix from Tensornetwork shape to qiskit shape using permutation matrix
-
-        """
-        n = int(np.log2(mat.size) / 2)
-        # p_mat_inv = np.linalg.inv(TensorNetwork.get_p_mat(n))
-        p_mat = TensorNetwork.get_p_mat(n)
-        mat = p_mat.T @ mat
-        return mat
 
     @use_deep_copy
     # self.out_edges is incorrect after application
@@ -249,6 +182,7 @@ class TensorNetwork:
         :param qc:
         :return:
         """
+
         simulator = Aer.get_backend('unitary_simulator')
         job = simulator.run(transpile(qc, simulator))
         result = job.result()
@@ -282,78 +216,3 @@ class TensorNetwork:
             t, new_name = t.partial_contract_by_name(new_name, node.name)
         t = t.unpack(t.get_node_by_name(new_name).tensor)
         return t
-
-
-if __name__ == '__main__':
-
-    qc = QuantumCircuit(2)
-    qc.h(0)
-    qc.cx(0, 1)  # 2 3 0 1
-
-    print(qc)
-
-    t1 = TensorNetwork.qiskit_circuit_to_unitary(qc).data
-    dumped_qc = TensorNetwork.dump_qiskit_circuit(qc)
-
-    tensor_network = TensorNetwork.get_from_qiskit_circuit(qc)
-    #t2 = tensor_network.convert_to_qiskit_matrix(tensor_network.unpack(tensor_network.fully_contract(remove_inputs=False).tensor))
-    t2 = tensor_network.contract_backwards()
-    qc2 = QuantumCircuit(2)
-    qc2.unitary(t2, [0, 1])
-
-    TensorNetwork.simulate_and_draw_result_comparison(qc, qc2, shots=10000)
-
-
-
-    print("\n", t1, "\n")
-    print(t2, "\n")
-    diff = TensorNetwork.get_diff_tensor(t1, t2)
-    zero_matrix = np.zeros((4, 4), dtype=int)
-    if np.allclose(zero_matrix, diff):
-        print("True")
-    else:
-        print("False")
-
-
-    #
-    # t2 = tensornetwork.fix_shape2(tensornetwork.get_tensor_of_backwards_contracted_gates())
-    # #t2 = tensornetwork.translate_qiskit_data(t2, 2)
-    # print(t1)
-    # print("\n")
-    # print(t2)
-
-
-    #t2 = t2.fix_shape2(t2.get_node_by_name("cx-0").tensor)
-    #print(t2.convert_from_qiskit_matrix(t1))
-    #d_edges = list(tn.get_subgraph_dangling(t2.nodes))
-    #d_edges = list(reversed(sorted(d_edges, key=lambda e: e.axis1)))
-    #d_edges = list(sorted(d_edges, key=lambda e: e.axis1))
-    #d_edges = [d_edges[3], d_edges[2], d_edges[1], d_edges[0]]
-    #print(d_edges)
-    #c1 = tn.contractors.optimal(t2.nodes, d_edges)
-    #t2 = t2.fix_shape2(c1.tensor)
-
-    #t2 = TensorNetwork.convert_to_qiskit_matrix(t2)
-    #t2 = t2.fully_contract(remove_inputs=True)
-    #t2 = TensorNetwork.fix_shape2(t2.tensor)
-    #new_name = t2.nodes[-1].name
-    #for node in reversed(t2.nodes[:-1]):
-    #    t2, new_name = t2.partial_contract_by_name(new_name, node.name)
-    #t2 = t2.fix_shape2(t2.get_node_by_name(new_name).tensor)
-
-    #t2 = tensornetwork.partial_contract_by_name("unitary-1", "h-0")
-    #t2 = tensornetwork.fix_shape2(t2.get_node_by_name("unitary-1+h-0").tensor)
-    #t2 = tensornetwork.fix_shape2(t2.partial_contract_by_name("unitary-2+cx-1", "h-0").get_node_by_name("unitary-2+cx-1+h-0").tensor)
-    #qc2 = QuantumCircuit(2)
-    #qc2.unitary(t2, [0, 1])
-
-    #TensorNetwork.simulate_and_draw_result_comparison(qc, qc2, shots=10000)
-    #
-    # print("\n", t1, "\n")
-    # print(t2, "\n")
-    # diff = TensorNetwork.get_diff_tensor(t1, t2)
-    # zero_matrix = np.zeros((4, 4), dtype=int)
-    # if np.allclose(zero_matrix, diff):
-    #     print("True")
-    # else:
-    #     print("False")

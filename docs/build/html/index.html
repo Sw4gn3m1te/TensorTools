@@ -50,24 +50,30 @@
 <li><a class="reference internal" href="#tensornetwork-py">TensorNetwork.py</a><ul>
 <li><a class="reference internal" href="#TensorNetwork.TensorNetwork"><code class="docutils literal notranslate"><span class="pre">TensorNetwork</span></code></a><ul>
 <li><a class="reference internal" href="#TensorNetwork.TensorNetwork.contract_backwards"><code class="docutils literal notranslate"><span class="pre">TensorNetwork.contract_backwards()</span></code></a></li>
-<li><a class="reference internal" href="#TensorNetwork.TensorNetwork.convert_from_qiskit_matrix"><code class="docutils literal notranslate"><span class="pre">TensorNetwork.convert_from_qiskit_matrix()</span></code></a></li>
-<li><a class="reference internal" href="#TensorNetwork.TensorNetwork.convert_to_qiskit_matrix"><code class="docutils literal notranslate"><span class="pre">TensorNetwork.convert_to_qiskit_matrix()</span></code></a></li>
 <li><a class="reference internal" href="#TensorNetwork.TensorNetwork.draw_comparison_diagram"><code class="docutils literal notranslate"><span class="pre">TensorNetwork.draw_comparison_diagram()</span></code></a></li>
-<li><a class="reference internal" href="#TensorNetwork.TensorNetwork.dump_qiskit_circuit"><code class="docutils literal notranslate"><span class="pre">TensorNetwork.dump_qiskit_circuit()</span></code></a></li>
 <li><a class="reference internal" href="#TensorNetwork.TensorNetwork.fully_contract"><code class="docutils literal notranslate"><span class="pre">TensorNetwork.fully_contract()</span></code></a></li>
 <li><a class="reference internal" href="#TensorNetwork.TensorNetwork.get_diff_tensor"><code class="docutils literal notranslate"><span class="pre">TensorNetwork.get_diff_tensor()</span></code></a></li>
-<li><a class="reference internal" href="#TensorNetwork.TensorNetwork.get_from_qiskit_circuit"><code class="docutils literal notranslate"><span class="pre">TensorNetwork.get_from_qiskit_circuit()</span></code></a></li>
 <li><a class="reference internal" href="#TensorNetwork.TensorNetwork.get_graph"><code class="docutils literal notranslate"><span class="pre">TensorNetwork.get_graph()</span></code></a></li>
 <li><a class="reference internal" href="#TensorNetwork.TensorNetwork.get_node_by_name"><code class="docutils literal notranslate"><span class="pre">TensorNetwork.get_node_by_name()</span></code></a></li>
-<li><a class="reference internal" href="#TensorNetwork.TensorNetwork.get_p_mat"><code class="docutils literal notranslate"><span class="pre">TensorNetwork.get_p_mat()</span></code></a></li>
 <li><a class="reference internal" href="#TensorNetwork.TensorNetwork.get_zero_qb"><code class="docutils literal notranslate"><span class="pre">TensorNetwork.get_zero_qb()</span></code></a></li>
-<li><a class="reference internal" href="#TensorNetwork.TensorNetwork.pack"><code class="docutils literal notranslate"><span class="pre">TensorNetwork.pack()</span></code></a></li>
 <li><a class="reference internal" href="#TensorNetwork.TensorNetwork.partial_contract_by_name"><code class="docutils literal notranslate"><span class="pre">TensorNetwork.partial_contract_by_name()</span></code></a></li>
 <li><a class="reference internal" href="#TensorNetwork.TensorNetwork.perform_svd_on_node"><code class="docutils literal notranslate"><span class="pre">TensorNetwork.perform_svd_on_node()</span></code></a></li>
+<li><a class="reference internal" href="#TensorNetwork.TensorNetwork.populate_with_data"><code class="docutils literal notranslate"><span class="pre">TensorNetwork.populate_with_data()</span></code></a></li>
 <li><a class="reference internal" href="#TensorNetwork.TensorNetwork.qiskit_circuit_to_unitary"><code class="docutils literal notranslate"><span class="pre">TensorNetwork.qiskit_circuit_to_unitary()</span></code></a></li>
-<li><a class="reference internal" href="#TensorNetwork.TensorNetwork.set_init_qubits"><code class="docutils literal notranslate"><span class="pre">TensorNetwork.set_init_qubits()</span></code></a></li>
 <li><a class="reference internal" href="#TensorNetwork.TensorNetwork.simulate_and_draw_result_comparison"><code class="docutils literal notranslate"><span class="pre">TensorNetwork.simulate_and_draw_result_comparison()</span></code></a></li>
-<li><a class="reference internal" href="#TensorNetwork.TensorNetwork.unpack"><code class="docutils literal notranslate"><span class="pre">TensorNetwork.unpack()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#qiskitadapter-py">QiskitAdapter.py</a><ul>
+<li><a class="reference internal" href="#QiskitAdapter.QiskitAdapter"><code class="docutils literal notranslate"><span class="pre">QiskitAdapter</span></code></a><ul>
+<li><a class="reference internal" href="#QiskitAdapter.QiskitAdapter.align"><code class="docutils literal notranslate"><span class="pre">QiskitAdapter.align()</span></code></a></li>
+<li><a class="reference internal" href="#QiskitAdapter.QiskitAdapter.convert_from_qiskit_matrix"><code class="docutils literal notranslate"><span class="pre">QiskitAdapter.convert_from_qiskit_matrix()</span></code></a></li>
+<li><a class="reference internal" href="#QiskitAdapter.QiskitAdapter.convert_to_qiskit_matrix"><code class="docutils literal notranslate"><span class="pre">QiskitAdapter.convert_to_qiskit_matrix()</span></code></a></li>
+<li><a class="reference internal" href="#QiskitAdapter.QiskitAdapter.dump"><code class="docutils literal notranslate"><span class="pre">QiskitAdapter.dump()</span></code></a></li>
+<li><a class="reference internal" href="#QiskitAdapter.QiskitAdapter.get_p_mat"><code class="docutils literal notranslate"><span class="pre">QiskitAdapter.get_p_mat()</span></code></a></li>
+<li><a class="reference internal" href="#QiskitAdapter.QiskitAdapter.pack"><code class="docutils literal notranslate"><span class="pre">QiskitAdapter.pack()</span></code></a></li>
+<li><a class="reference internal" href="#QiskitAdapter.QiskitAdapter.unpack"><code class="docutils literal notranslate"><span class="pre">QiskitAdapter.unpack()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -117,7 +123,7 @@
 <span id="module-TensorNetwork"></span><h3>TensorNetwork.py<a class="headerlink" href="#tensornetwork-py" title="Link to this heading"></a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="TensorNetwork.TensorNetwork">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">TensorNetwork.</span></span><span class="sig-name descname"><span class="pre">TensorNetwork</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_qubits</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init_qubits</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/TensorNetwork.html#TensorNetwork"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#TensorNetwork.TensorNetwork" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">TensorNetwork.</span></span><span class="sig-name descname"><span class="pre">TensorNetwork</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_qubits</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init_qubits</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adapter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#QiskitAdapter.QiskitAdapter" title="QiskitAdapter.QiskitAdapter"><span class="pre">QiskitAdapter</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/TensorNetwork.html#TensorNetwork"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#TensorNetwork.TensorNetwork" title="Link to this definition"></a></dt>
 <dd><dl class="py method">
 <dt class="sig sig-object py" id="TensorNetwork.TensorNetwork.contract_backwards">
 <span class="sig-name descname"><span class="pre">contract_backwards</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">array</span></span></span><a class="reference internal" href="_modules/TensorNetwork.html#TensorNetwork.contract_backwards"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#TensorNetwork.TensorNetwork.contract_backwards" title="Link to this definition"></a></dt>
@@ -125,35 +131,9 @@
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="TensorNetwork.TensorNetwork.convert_from_qiskit_matrix">
-<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">convert_from_qiskit_matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mat</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">array</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">array</span></span></span><a class="reference internal" href="_modules/TensorNetwork.html#TensorNetwork.convert_from_qiskit_matrix"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#TensorNetwork.TensorNetwork.convert_from_qiskit_matrix" title="Link to this definition"></a></dt>
-<dd><p>transforms matrix from qiskit shape to TensorNetwork shape using permutation matrix</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="TensorNetwork.TensorNetwork.convert_to_qiskit_matrix">
-<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">convert_to_qiskit_matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mat</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">array</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">array</span></span></span><a class="reference internal" href="_modules/TensorNetwork.html#TensorNetwork.convert_to_qiskit_matrix"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#TensorNetwork.TensorNetwork.convert_to_qiskit_matrix" title="Link to this definition"></a></dt>
-<dd><p>transforms matrix from Tensornetwork shape to qiskit shape using permutation matrix</p>
-</dd></dl>
-
-<dl class="py method">
 <dt class="sig sig-object py" id="TensorNetwork.TensorNetwork.draw_comparison_diagram">
 <em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">draw_comparison_diagram</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/TensorNetwork.html#TensorNetwork.draw_comparison_diagram"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#TensorNetwork.TensorNetwork.draw_comparison_diagram" title="Link to this definition"></a></dt>
 <dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="TensorNetwork.TensorNetwork.dump_qiskit_circuit">
-<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">dump_qiskit_circuit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">qc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">QuantumCircuit</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/TensorNetwork.html#TensorNetwork.dump_qiskit_circuit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#TensorNetwork.TensorNetwork.dump_qiskit_circuit" title="Link to this definition"></a></dt>
-<dd><p>dumps qiskit circuit object</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>qc</strong> – qiskit circuit</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>list(dict(‘name’:str, ‘data’:np.array, ‘ind’:list(int)))</p>
-</dd>
-</dl>
-</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="TensorNetwork.TensorNetwork.fully_contract">
@@ -185,12 +165,6 @@
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="TensorNetwork.TensorNetwork.get_from_qiskit_circuit">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_from_qiskit_circuit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">qc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">QuantumCircuit</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/TensorNetwork.html#TensorNetwork.get_from_qiskit_circuit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#TensorNetwork.TensorNetwork.get_from_qiskit_circuit" title="Link to this definition"></a></dt>
-<dd><p>constructs TensorNetwork object from qiskit circuit</p>
-</dd></dl>
-
-<dl class="py method">
 <dt class="sig sig-object py" id="TensorNetwork.TensorNetwork.get_graph">
 <span class="sig-name descname"><span class="pre">get_graph</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/TensorNetwork.html#TensorNetwork.get_graph"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#TensorNetwork.TensorNetwork.get_graph" title="Link to this definition"></a></dt>
 <dd></dd></dl>
@@ -207,26 +181,9 @@
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="TensorNetwork.TensorNetwork.get_p_mat">
-<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_p_mat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">array</span></span></span><a class="reference internal" href="_modules/TensorNetwork.html#TensorNetwork.get_p_mat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#TensorNetwork.TensorNetwork.get_p_mat" title="Link to this definition"></a></dt>
-<dd><p>returns a permutation matrix for conversion from/to qiskit</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>n</strong> – number of qubits (size will be 2^n)</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
 <dt class="sig sig-object py" id="TensorNetwork.TensorNetwork.get_zero_qb">
 <em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_zero_qb</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/TensorNetwork.html#TensorNetwork.get_zero_qb"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#TensorNetwork.TensorNetwork.get_zero_qb" title="Link to this definition"></a></dt>
 <dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="TensorNetwork.TensorNetwork.pack">
-<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">pack</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mat</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">array</span></span></span><a class="reference internal" href="_modules/TensorNetwork.html#TensorNetwork.pack"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#TensorNetwork.TensorNetwork.pack" title="Link to this definition"></a></dt>
-<dd><p>reshapes (nxn)-matrix into appropriate n-rank tensor</p>
-</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="TensorNetwork.TensorNetwork.partial_contract_by_name">
@@ -264,6 +221,12 @@
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="TensorNetwork.TensorNetwork.populate_with_data">
+<span class="sig-name descname"><span class="pre">populate_with_data</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/TensorNetwork.html#TensorNetwork.populate_with_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#TensorNetwork.TensorNetwork.populate_with_data" title="Link to this definition"></a></dt>
+<dd><p>fills TensorNetwork with data by using adapter</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="TensorNetwork.TensorNetwork.qiskit_circuit_to_unitary">
 <em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">qiskit_circuit_to_unitary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">qc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">QuantumCircuit</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">array</span></span></span><a class="reference internal" href="_modules/TensorNetwork.html#TensorNetwork.qiskit_circuit_to_unitary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#TensorNetwork.TensorNetwork.qiskit_circuit_to_unitary" title="Link to this definition"></a></dt>
 <dd><p>gets the unitary of a quantum circuit using qiskits unitary simulator</p>
@@ -276,11 +239,6 @@
 </dd>
 </dl>
 </dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="TensorNetwork.TensorNetwork.set_init_qubits">
-<span class="sig-name descname"><span class="pre">set_init_qubits</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">init_qubits</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/TensorNetwork.html#TensorNetwork.set_init_qubits"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#TensorNetwork.TensorNetwork.set_init_qubits" title="Link to this definition"></a></dt>
-<dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="TensorNetwork.TensorNetwork.simulate_and_draw_result_comparison">
@@ -297,9 +255,63 @@
 </dl>
 </dd></dl>
 
+</dd></dl>
+
+</section>
+<section id="qiskitadapter-py">
+<h3>QiskitAdapter.py<a class="headerlink" href="#qiskitadapter-py" title="Link to this heading"></a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="QiskitAdapter.QiskitAdapter">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">QiskitAdapter.</span></span><span class="sig-name descname"><span class="pre">QiskitAdapter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">qc</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/QiskitAdapter.html#QiskitAdapter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#QiskitAdapter.QiskitAdapter" title="Link to this definition"></a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="QiskitAdapter.QiskitAdapter.align">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">align</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mat</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">array</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inds</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/QiskitAdapter.html#QiskitAdapter.align"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#QiskitAdapter.QiskitAdapter.align" title="Link to this definition"></a></dt>
+<dd><p>transposes mat using inds because qiskits wierd representation</p>
+</dd></dl>
+
 <dl class="py method">
-<dt class="sig sig-object py" id="TensorNetwork.TensorNetwork.unpack">
-<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">unpack</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mat</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">array</span></span></span><a class="reference internal" href="_modules/TensorNetwork.html#TensorNetwork.unpack"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#TensorNetwork.TensorNetwork.unpack" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="QiskitAdapter.QiskitAdapter.convert_from_qiskit_matrix">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">convert_from_qiskit_matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mat</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">array</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">array</span></span></span><a class="reference internal" href="_modules/QiskitAdapter.html#QiskitAdapter.convert_from_qiskit_matrix"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#QiskitAdapter.QiskitAdapter.convert_from_qiskit_matrix" title="Link to this definition"></a></dt>
+<dd><p>transforms matrix from qiskit shape to TensorNetwork shape using permutation matrix</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="QiskitAdapter.QiskitAdapter.convert_to_qiskit_matrix">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">convert_to_qiskit_matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mat</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">array</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">array</span></span></span><a class="reference internal" href="_modules/QiskitAdapter.html#QiskitAdapter.convert_to_qiskit_matrix"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#QiskitAdapter.QiskitAdapter.convert_to_qiskit_matrix" title="Link to this definition"></a></dt>
+<dd><p>transforms matrix from Tensornetwork shape to qiskit shape using permutation matrix</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="QiskitAdapter.QiskitAdapter.dump">
+<span class="sig-name descname"><span class="pre">dump</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="_modules/QiskitAdapter.html#QiskitAdapter.dump"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#QiskitAdapter.QiskitAdapter.dump" title="Link to this definition"></a></dt>
+<dd><p>dumps datastructure to dict</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>data = {“num_qb”: int, “data”: list[dict[“name”: str, “inds”: list[int], “mat”: np.array]]}</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="QiskitAdapter.QiskitAdapter.get_p_mat">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_p_mat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">array</span></span></span><a class="reference internal" href="_modules/QiskitAdapter.html#QiskitAdapter.get_p_mat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#QiskitAdapter.QiskitAdapter.get_p_mat" title="Link to this definition"></a></dt>
+<dd><p>returns a permutation matrix for conversion from/to qiskit</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>n</strong> – number of qubits (size will be 2^n)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="QiskitAdapter.QiskitAdapter.pack">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">pack</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mat</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">array</span></span></span><a class="reference internal" href="_modules/QiskitAdapter.html#QiskitAdapter.pack"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#QiskitAdapter.QiskitAdapter.pack" title="Link to this definition"></a></dt>
+<dd><p>reshapes (nxn)-matrix into appropriate n-rank tensor</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="QiskitAdapter.QiskitAdapter.unpack">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">unpack</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mat</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">array</span></span></span><a class="reference internal" href="_modules/QiskitAdapter.html#QiskitAdapter.unpack"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#QiskitAdapter.QiskitAdapter.unpack" title="Link to this definition"></a></dt>
 <dd><p>reshapes n-rank tensor into appropriate (nxn)-matrix</p>
 </dd></dl>
 
