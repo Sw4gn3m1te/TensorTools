@@ -111,7 +111,14 @@ class TensorNetwork:
         node1, node2 = (next((node for node in self.init_states + self.nodes if node.name == node_name), None) for node_name in (node_name_1, node_name_2))
         assert node1 and node2
         new_node_name = f"{node_name_1}+{node_name_2}"
-        res = tn.contract_between(node1, node2, name=new_node_name)
+        oeo = tn.get_all_dangling([node1]) + tn.get_all_dangling([node2])
+        oeo = sorted(oeo, key=lambda x: x.axis1)
+        # print(tn.get_all_dangling([node1]))
+        # print(tn.get_all_dangling([node2]))
+        ordering = [_ for _ in range(len(oeo))]
+        ordering = ordering[len(ordering)//2:] + ordering[:len(ordering)//2]
+        oeo = [oeo[i] for i in ordering]
+        res = tn.contract_between(node1, node2, name=new_node_name, output_edge_order=oeo)
         self.nodes.remove(node1)
         self.nodes.remove(node2)
         self.nodes.append(res)
@@ -204,7 +211,8 @@ class TensorNetwork:
         diff[np.abs(diff) < threshold] = 0
         return diff
 
-    def contract_backwards(self) -> np.array:
+    @use_deep_copy
+    def contract_backwards(self) -> tuple[TensorNetwork, str]:
         """
         uses TensorNetwork.partial_contract_by_name to contract the entire network starting from the back
 
@@ -214,5 +222,4 @@ class TensorNetwork:
         t = self
         for node in reversed(self.nodes[:-1]):
             t, new_name = t.partial_contract_by_name(new_name, node.name)
-        t = t.unpack(t.get_node_by_name(new_name).tensor)
-        return t
+        return t, new_name
