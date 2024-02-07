@@ -73,8 +73,6 @@ class QiskitAdapter:
         transposes mat using inds because qiskits wierd representation
 
         """
-
-
         mask = inds + [e + len(inds) for e in inds]
         t = [(e, i) for e, i in zip([_ for _ in reversed(range(len(mask)))], mask)]
         t = sorted(t, key=lambda x: x[1])

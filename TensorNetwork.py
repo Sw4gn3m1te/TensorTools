@@ -46,6 +46,7 @@ class TensorNetwork:
         else:
             self.init_qubits = init_qubits
         self.out_edges = []
+        self.in_edges = []
         self.adapter = adapter
         self.populate_with_data()
 
@@ -57,6 +58,7 @@ class TensorNetwork:
         dump = self.adapter.dump()
         self.num_qubits = dump["num_qb"]
         last_elements = self.init_qubits
+        last_elements = [None] * self.num_qubits
         for gate in dump["data"]:
             m = gate["mat"]
             inds = gate["inds"]
@@ -66,15 +68,34 @@ class TensorNetwork:
             m = self.adapter.convert_from_qiskit_matrix(m)
             m = self.adapter.pack(m)
             node = tn.Node(m, name=gate["name"])
-            for e, i in enumerate(inds):
-                edge = tn.connect(last_elements[i], node[e])
+            for en, ind in enumerate(inds):
+                if last_elements[ind] is None:
+                    last_elements[ind] = node.get_edge(en + len(inds))
+                    self.in_edges.append((ind, node.get_edge(en)))
+                    continue
+
+                edge = tn.connect(last_elements[ind], node[en])
                 self.edges.append(edge)
-                last_elements[i] = node[e + len(inds)]
+                last_elements[ind] = node[en + len(inds)]
             self.nodes.append(node)
+
+        self.in_edges = [item[1] for item in sorted(self.in_edges, key=lambda x: x[0])]
         self.out_edges = last_elements
 
-        for node in self.init_states:
-            tn.remove_node(node)
+        #
+        # in_edges = []
+        # for node in self.init_states:
+        #     in_edges += node.edges
+        #
+        # for node in self.init_states:
+        #     tn.remove_node(node)
+        #
+        # for edge in in_edges:
+        #     inp_node = edge.get_nodes()[1]
+        #     x = tn.get_all_dangling([inp_node])
+        #     print(x, "x")
+        #     self.in_edges += x
+
 
     @staticmethod
     def get_zero_qb(size: int):
@@ -84,18 +105,17 @@ class TensorNetwork:
         return qb
 
     @use_deep_copy
-    def fully_contract(self, remove_inputs=False) -> tn.AbstractNode:
+    def fully_contract(self) -> tn.AbstractNode:
         """
         contracts the entire network into a single node (currently using auto contractor)
 
-        :param remove_inputs: remove input qubits if connected to the network
         """
-        if remove_inputs:
-            for node in self.init_states:
-                tn.remove_node(node)
-        #res = tn.contractors.optimal(self.nodes, tn.get_all_dangling(self.nodes))
-        all_nodes = self.edges + self.init_qubits
-        res = tn.contractors.auto(self.nodes, tn.get_all_dangling(self.nodes))
+        oeo = self.out_edges + self.in_edges
+        # print(oeo)
+        # for edge in oeo:
+        #     print(edge.get_nodes()[0].name)
+        # print(oeo)
+        res = tn.contractors.optimal(self.nodes, output_edge_order=oeo)
         return res
 
     @use_deep_copy
@@ -111,13 +131,10 @@ class TensorNetwork:
         node1, node2 = (next((node for node in self.init_states + self.nodes if node.name == node_name), None) for node_name in (node_name_1, node_name_2))
         assert node1 and node2
         new_node_name = f"{node_name_1}+{node_name_2}"
-        oeo = tn.get_all_dangling([node1]) + tn.get_all_dangling([node2])
-        oeo = sorted(oeo, key=lambda x: x.axis1)
+        oeo = TensorNetwork.get_output_edge_order([node1, node2])
+
         # print(tn.get_all_dangling([node1]))
         # print(tn.get_all_dangling([node2]))
-        ordering = [_ for _ in range(len(oeo))]
-        ordering = ordering[len(ordering)//2:] + ordering[:len(ordering)//2]
-        oeo = [oeo[i] for i in ordering]
         res = tn.contract_between(node1, node2, name=new_node_name, output_edge_order=oeo)
         self.nodes.remove(node1)
         self.nodes.remove(node2)
