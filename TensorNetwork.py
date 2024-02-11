@@ -64,9 +64,12 @@ class TensorNetwork:
             inds = gate["inds"]
             m = self.adapter.pack(m)
             m = self.adapter.align(m, inds)
+            m = m.T
             m = self.adapter.unpack(m)
-            m = self.adapter.convert_from_qiskit_matrix(m)
+            #m = self.adapter.convert_from_qiskit_matrix(m)
+
             m = self.adapter.pack(m)
+            inds = list(sorted(inds))
             node = tn.Node(m, name=gate["name"])
             for en, ind in enumerate(inds):
                 if last_elements[ind] is None:
@@ -82,21 +85,6 @@ class TensorNetwork:
         self.in_edges = [item[1] for item in sorted(self.in_edges, key=lambda x: x[0])]
         self.out_edges = last_elements
 
-        #
-        # in_edges = []
-        # for node in self.init_states:
-        #     in_edges += node.edges
-        #
-        # for node in self.init_states:
-        #     tn.remove_node(node)
-        #
-        # for edge in in_edges:
-        #     inp_node = edge.get_nodes()[1]
-        #     x = tn.get_all_dangling([inp_node])
-        #     print(x, "x")
-        #     self.in_edges += x
-
-
     @staticmethod
     def get_zero_qb(size: int):
 
@@ -110,12 +98,13 @@ class TensorNetwork:
         contracts the entire network into a single node (currently using auto contractor)
 
         """
-        oeo = self.out_edges + self.in_edges
+        #oeo = self.out_edges + self.in_edges
+        oeo = self.in_edges + self.out_edges
         # print(oeo)
         # for edge in oeo:
         #     print(edge.get_nodes()[0].name)
-        # print(oeo)
-        res = tn.contractors.optimal(self.nodes, output_edge_order=oeo)
+        #oeo = [oeo[i] for i in [0,1,2,3]]
+        res = tn.contractors.greedy(self.nodes, output_edge_order=oeo)
         return res
 
     @use_deep_copy
@@ -131,10 +120,13 @@ class TensorNetwork:
         node1, node2 = (next((node for node in self.init_states + self.nodes if node.name == node_name), None) for node_name in (node_name_1, node_name_2))
         assert node1 and node2
         new_node_name = f"{node_name_1}+{node_name_2}"
-        oeo = TensorNetwork.get_output_edge_order([node1, node2])
-
+        #oeo = tn.get_all_dangling([node2]) + tn.get_all_dangling([node1])
+        # oeo not correct yet !
         # print(tn.get_all_dangling([node1]))
         # print(tn.get_all_dangling([node2]))
+        #oeo = self.out_edges + self.in_edges
+        oeo = self.in_edges + self.out_edges
+
         res = tn.contract_between(node1, node2, name=new_node_name, output_edge_order=oeo)
         self.nodes.remove(node1)
         self.nodes.remove(node2)

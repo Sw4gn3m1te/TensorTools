@@ -23,6 +23,11 @@ class QiskitAdapter:
                     revs_i += 1 << (n - j - 1)
                 bit = bit >> 1
             p_mat[i, revs_i] = 1
+
+        # p_mat = np.array([[1, 0, 0, 0],
+        #                   [0, 0, 0, 1],
+        #                   [0, 0, 1, 0],
+        #                   [0, 1, 0, 0]])
         return p_mat
 
     @staticmethod
@@ -61,8 +66,9 @@ class QiskitAdapter:
 
         """
         n = int(np.log2(mat.size) / 2)
-        # p_mat_inv = np.linalg.inv(TensorNetwork.get_p_mat(n))
+        # p_mat_inv = np.linalg.inv(QiskitAdapter.get_p_mat(n))
         p_mat = QiskitAdapter.get_p_mat(n)
+        print(p_mat)
         mat = p_mat.T @ mat @ p_mat.T
         return mat
 
