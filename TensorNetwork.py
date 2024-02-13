@@ -47,6 +47,7 @@ class TensorNetwork:
             self.init_qubits = init_qubits
         self.out_edges = []
         self.in_edges = []
+        self.gate_locations = {}
         self.adapter = adapter
         self.populate_with_data()
 
@@ -66,10 +67,10 @@ class TensorNetwork:
             m = self.adapter.align(m, inds)
             m = m.T
             m = self.adapter.unpack(m)
-            #m = self.adapter.convert_from_qiskit_matrix(m)
 
             m = self.adapter.pack(m)
             inds = list(sorted(inds))
+            self.gate_locations.update({gate["name"]: set(inds)})
             node = tn.Node(m, name=gate["name"])
             for en, ind in enumerate(inds):
                 if last_elements[ind] is None:
@@ -98,12 +99,7 @@ class TensorNetwork:
         contracts the entire network into a single node (currently using auto contractor)
 
         """
-        #oeo = self.out_edges + self.in_edges
         oeo = self.in_edges + self.out_edges
-        # print(oeo)
-        # for edge in oeo:
-        #     print(edge.get_nodes()[0].name)
-        #oeo = [oeo[i] for i in [0,1,2,3]]
         res = tn.contractors.greedy(self.nodes, output_edge_order=oeo)
         return res
 
@@ -120,17 +116,39 @@ class TensorNetwork:
         node1, node2 = (next((node for node in self.init_states + self.nodes if node.name == node_name), None) for node_name in (node_name_1, node_name_2))
         assert node1 and node2
         new_node_name = f"{node_name_1}+{node_name_2}"
-        #oeo = tn.get_all_dangling([node2]) + tn.get_all_dangling([node1])
-        # oeo not correct yet !
-        # print(tn.get_all_dangling([node1]))
-        # print(tn.get_all_dangling([node2]))
-        #oeo = self.out_edges + self.in_edges
-        oeo = self.in_edges + self.out_edges
 
-        res = tn.contract_between(node1, node2, name=new_node_name, output_edge_order=oeo)
+        node1_ind = self.nodes.index(node1)
+        node2_ind = self.nodes.index(node2)
+        if node2_ind < node1_ind:
+            node1, node2 = node2, node1
+
+        if abs(node1_ind - node2_ind) != 1:
+            print("nodes are not neighbours")
+            exit(1)
+
+        if len(self.gate_locations.get(node1.name).intersection(self.gate_locations.get(node2.name))) == 0:
+            print("nodes are not connected")
+            exit(1)
+
+        node1_edges = node1.get_all_edges()
+        node2_edges = node2.get_all_edges()
+        node1_inds = self.gate_locations.pop(node1.name)
+        node2_inds = self.gate_locations.pop(node2.name)
+
+        subgraph_in_edges = [(i, edge) for (i, edge) in zip(sorted(list(node1_inds)), node1_edges[:len(node1_edges) // 2])]
+        subgraph_in_edges += [(i, node2_edges[:len(node2_edges) // 2][i]) for i in sorted(list(node2_inds.difference(node1_inds)))]
+        subgraph_out_edges = [(i + len(subgraph_in_edges), edge) for (i, edge) in zip(sorted(list(node2_inds)), node2_edges[len(node2_edges) // 2:])]
+        subgraph_out_edges += [(i + len(subgraph_in_edges), node1_edges[len(node1_edges) // 2:][i]) for i in sorted(list(node1_inds.difference(node2_inds)))]
+
+        oeo = [e[1] for e in sorted(subgraph_in_edges + subgraph_out_edges, key=lambda x: x[0])]
+        print(oeo)
+        new_node = tn.contract_between(node1, node2, name=new_node_name, output_edge_order=oeo)
+        i = self.nodes.index(node1)
+        self.gate_locations.update({new_node_name: node1_inds.union(node2_inds)})
         self.nodes.remove(node1)
         self.nodes.remove(node2)
-        self.nodes.append(res)
+        self.nodes.insert(i, new_node)
+
         return self, new_node_name
 
     def get_node_by_name(self, name: str) -> tn.AbstractNode:

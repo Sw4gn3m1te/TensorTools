@@ -10,7 +10,7 @@ warnings.filterwarnings("ignore")
 np.set_printoptions(linewidth=np.inf)
 
 
-nqb = 2
+nqb = 3
 qc = QuantumCircuit(nqb)
 
 #qc.cx(0, 1)
@@ -36,16 +36,18 @@ ut3 = np.array(
      [0, 0, 0, 0]])
 
 
+qc.cx(2, 0)
+qc.h(2)
+qc.ccx(0, 2, 1)
 qc.cx(1, 0)
-qc.h(1)
+#qc.h(1)
 #qc.unitary(np.eye(4), [0, 1])
 #qc.unitary(np.array([[1, 2], [3, 4]]), 0)
-
 #qc.unitary(ut, [0, 1])
-
 #qc.unitary(ut2, [0, 1])
 #qc.cx(0, 1)
 #qc.h(1)
+#qc.ccx(0, 2, 1)
 
 
 
@@ -55,8 +57,8 @@ t1 = TensorNetwork.qiskit_circuit_to_unitary(qc).data
 t_n = TensorNetwork(nqb, adapter=QiskitAdapter(qc))
 t_n.get_graph()
 
-for node in t_n.nodes:
-   print(t_n.adapter.unpack(node.tensor))
+# for node in t_n.nodes:
+#    print(t_n.adapter.unpack(node.tensor))
 
 print("\n")
 #t2 = t_n.get_node_by_name("unitary-0").tensor
@@ -64,14 +66,14 @@ print("\n")
 # res = np.tensordot(*[node.tensor.T for node in t_n.nodes], axes=[1, 0]).T
 # print(t_n.adapter.unpack(res), "EASPORTS")
 
-t2 = t_n.fully_contract().tensor
-
-
+#t2 = t_n.fully_contract().tensor
+t_n, name = t_n.contract_backwards()
+#t_n, name = t_n.partial_contract_by_name("h-1", "ccx-2")
+t2 = t_n.get_node_by_name(name).tensor
 
 #t_n, name = t_n.partial_contract_by_name("cx-0", "unitary-1")
 #t2 = t_n.get_node_by_name(name).tensor
-t2 = t2.T
-t2 = t_n.adapter.unpack(t2)
+t2 = t_n.adapter.unpack(t2.T)
 #t2 = t_n.adapter.convert_to_qiskit_matrix(t2)
 
 
