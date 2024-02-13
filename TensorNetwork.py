@@ -134,9 +134,9 @@ class TensorNetwork:
         node2_inds = self.gate_locations.pop(node2.name)
 
         subgraph_in_edges = [(i, edge) for (i, edge) in zip(sorted(list(node1_inds)), node1_edges[:len(node1_edges) // 2])]
-        subgraph_in_edges += [(i, node2_edges[:len(node2_edges) // 2][i]) for i in sorted(list(node2_inds.difference(node1_inds)))]
+        subgraph_in_edges += [(i, node2_edges[:len(node2_edges) // 2][sorted(list(node2_inds)).index(i)]) for i in sorted(list((node2_inds.union(node1_inds)).difference(node1_inds)))]
         subgraph_out_edges = [(i + len(subgraph_in_edges), edge) for (i, edge) in zip(sorted(list(node2_inds)), node2_edges[len(node2_edges) // 2:])]
-        subgraph_out_edges += [(i + len(subgraph_in_edges), node1_edges[len(node1_edges) // 2:][i]) for i in sorted(list(node1_inds.difference(node2_inds)))]
+        subgraph_out_edges += [(i + len(subgraph_in_edges), node1_edges[len(node1_edges) // 2:][sorted(list(node1_inds)).index(i)]) for i in sorted(list((node1_inds.union(node2_inds)).difference(node2_inds)))]
 
         oeo = [e[1] for e in sorted(subgraph_in_edges + subgraph_out_edges, key=lambda x: x[0])]
         new_node = tn.contract_between(node1, node2, name=new_node_name, output_edge_order=oeo)

@@ -15,7 +15,7 @@ u = qi.random_unitary(4, seed=420)
 qc.cx(2, 0)
 qc.h(2)
 qc.ccx(0, 2, 1)
-#qc.unitary(u, [1, 2])
+qc.unitary(u, [1, 2])
 qc.cx(1, 0)
 
 print(qc, "\n")
