@@ -139,6 +139,8 @@ class TensorNetwork:
         subgraph_out_edges += [(i + len(subgraph_in_edges), node1_edges[len(node1_edges) // 2:][sorted(list(node1_inds)).index(i)]) for i in sorted(list((node1_inds.union(node2_inds)).difference(node2_inds)))]
 
         oeo = [e[1] for e in sorted(subgraph_in_edges + subgraph_out_edges, key=lambda x: x[0])]
+        print(node1, node2)
+        print(oeo)
         new_node = tn.contract_between(node1, node2, name=new_node_name, output_edge_order=oeo)
         i = self.nodes.index(node1)
         self.gate_locations.update({new_node_name: node1_inds.union(node2_inds)})
@@ -170,8 +172,19 @@ class TensorNetwork:
         (u, s, v, truncated) = tn.split_node_full_svd(node, left_edges=node[:len(node.edges) // 2], right_edges=node[len(node.edges) // 2:],
                                                       max_singular_values=max_singular_values, max_truncation_err=max_truncation_err,
                                                       left_name=f"u-{name}", middle_name=f"s-{name}", right_name=f"v-{name}")
+        node_index = self.nodes.index(node)
+        gate_indices = self.gate_locations.pop(node.name)
         self.nodes.remove(node)
-        self.nodes += [u, s, v]
+        self.gate_locations.update({u.name: gate_indices, s.name: gate_indices, v.name: gate_indices})
+        s1, s2 = s.edges[0], s.edges[1]
+        tn.split_edge(s1, (2,) * int(np.log2(s.tensor.size) / 2))
+        tn.split_edge(s2, (2,) * int(np.log2(s.tensor.size) / 2))
+
+        self.nodes.insert(node_index, v)
+        self.nodes.insert(node_index, s)
+        self.nodes.insert(node_index, u)
+        # I don't know if this is right or changes some results in some way
+        v.reorder_edges([v.edges[i] for i in list(range(len(v.edges) // 2, len(v.edges))) + list(range(0, len(v.edges) // 2))])
         return self
 
     def get_graph(self):

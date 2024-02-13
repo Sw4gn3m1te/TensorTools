@@ -18,16 +18,18 @@ qc.ccx(0, 2, 1)
 qc.unitary(u, [1, 2])
 qc.cx(1, 0)
 
+qc_reset = qc.copy()
+
 print(qc, "\n")
 t_n = TensorNetwork(nqb, adapter=QiskitAdapter(qc))
 qc = t_n.to_qiskit_circuit()
 while True:
     print(qc, "\n")
 
-    op = input("simulate (s) | contract (c) | collapse (f) | exit(e)\n")
+    op = input("simulate (s) | contract (c) | collapse (f) | svd-decompose (d) | reset (r) | exit(e)\n")
     if op == "e":
         exit(1)
-    if op == "c":
+    elif op == "c":
         g1 = input("select first gate for contraction by name\n")
         g2 = input("select second gate for contraction by name\n")
 
@@ -38,11 +40,16 @@ while True:
             t_n, new_node_name = res
         qc = t_n.to_qiskit_circuit()
 
-    if op == "f":
+    elif op == "d":
+        name = input("select node to perform svd on by name\n")
+        t_n = t_n.perform_svd_on_node(name)
+        qc = t_n.to_qiskit_circuit()
+
+    elif op == "f":
         t_n, new_node_name = t_n.contract_backwards()
         qc = t_n.to_qiskit_circuit()
 
-    if op == "s":
+    elif op == "s":
         qc_t = t_n.to_qiskit_circuit()
         qc_t.measure_all()
         qc_t = transpile(qc_t, simulator)
@@ -53,6 +60,16 @@ while True:
         ax.hist(data)
         mpl.tight_layout()
         mpl.show()
+
+    elif op == "r":
+        qc = qc_reset.copy()
+        t_n = TensorNetwork(nqb, adapter=QiskitAdapter(qc))
+        qc = t_n.to_qiskit_circuit()
+        print("resetting...\n")
+
+    else:
+        print("no valid option\n")
+        continue
 
 
 
