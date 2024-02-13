@@ -1,24 +1,23 @@
 from __future__ import annotations
 
-import functools
-
 import qiskit
 import tensornetwork as tn
-import qiskit.quantum_info as qi
+
 from qiskit import QuantumCircuit
 import numpy as np
 import copy
+from typing import Optional
 from functools import wraps, partial
-from itertools import permutations
-from qiskit import Aer, transpile, execute
+from qiskit import Aer, transpile
 import matplotlib.pyplot as mpl
-import math
 from QiskitAdapter import QiskitAdapter
 
 import warnings
 warnings.filterwarnings("ignore")
 np.set_printoptions(linewidth=np.inf)
 
+
+colors = {"red": "\u001b[38;5;1m", "orange": "\u001b[38;5;208m", "yellow": "\u001b[38;5;11m", "green": "\u001b[38;5;10m", "blue": "\u001b[38;5;12m", "default": "\u001b[0;39m"}
 
 def use_deep_copy(func):
 
@@ -32,7 +31,6 @@ def use_deep_copy(func):
         kwargs_copy = {k: copy.deepcopy(v) for k, v in kwargs.items()}
         return func(*args_copy, **kwargs_copy)
     return wrapper
-
 
 class TensorNetwork:
 
@@ -94,7 +92,7 @@ class TensorNetwork:
         return qb
 
     @use_deep_copy
-    def fully_contract(self) -> tn.AbstractNode:
+    def get_fully_contracted_network_as_node(self) -> tn.AbstractNode:
         """
         contracts the entire network into a single node (currently using auto contractor)
 
@@ -105,7 +103,7 @@ class TensorNetwork:
 
     @use_deep_copy
     # self.out_edges is incorrect after application
-    def partial_contract_by_name(self, node_name_1: str, node_name_2: str) -> tuple[TensorNetwork, str]:
+    def partial_contract_by_name(self, node_name_1: str, node_name_2: str) -> Optional[tuple[TensorNetwork, str]]:
         """
         finds the edge connecting two nodes and contracts it
 
@@ -123,12 +121,12 @@ class TensorNetwork:
             node1, node2 = node2, node1
 
         if abs(node1_ind - node2_ind) != 1:
-            print("nodes are not neighbours")
-            exit(1)
+            print("nodes are not neighbours\n")
+            return
 
         if len(self.gate_locations.get(node1.name).intersection(self.gate_locations.get(node2.name))) == 0:
-            print("nodes are not connected")
-            exit(1)
+            print("nodes are not connected\n")
+            return
 
         node1_edges = node1.get_all_edges()
         node2_edges = node2.get_all_edges()
@@ -141,7 +139,6 @@ class TensorNetwork:
         subgraph_out_edges += [(i + len(subgraph_in_edges), node1_edges[len(node1_edges) // 2:][i]) for i in sorted(list(node1_inds.difference(node2_inds)))]
 
         oeo = [e[1] for e in sorted(subgraph_in_edges + subgraph_out_edges, key=lambda x: x[0])]
-        print(oeo)
         new_node = tn.contract_between(node1, node2, name=new_node_name, output_edge_order=oeo)
         i = self.nodes.index(node1)
         self.gate_locations.update({new_node_name: node1_inds.union(node2_inds)})
@@ -250,3 +247,17 @@ class TensorNetwork:
         for node in reversed(self.nodes[:-1]):
             t, new_name = t.partial_contract_by_name(new_name, node.name)
         return t, new_name
+
+    def to_qiskit_circuit(self, color: str = None) -> QuantumCircuit:
+        qc = QuantumCircuit(self.num_qubits)
+        for node in self.nodes:
+            if color in ["red", "orange", "yellow", "green", "blue"]:
+                label = color_text(node.name, color)
+            else:
+                label = node.name
+            qc.unitary(self.adapter.unpack(node.tensor.T), self.gate_locations.get(node.name), label=label)
+        return qc
+
+
+def color_text(s: str, color) -> str:
+    return colors.get(color) + s + colors.get("default")
