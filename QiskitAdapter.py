@@ -98,5 +98,4 @@ class QiskitAdapter:
              "inds": [qb.index for qb in gate.qubits],
              "mat": gate.operation.to_matrix()
              } for e, gate in enumerate(self.qc) if gate.operation.name != "measure"]
-
         return {"num_qb": self.qc.num_qubits, "data": data}

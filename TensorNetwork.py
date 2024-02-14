@@ -32,6 +32,7 @@ def use_deep_copy(func):
         return func(*args_copy, **kwargs_copy)
     return wrapper
 
+
 class TensorNetwork:
 
     def __init__(self, num_qubits: int, init_qubits=None, adapter: QiskitAdapter = None):
@@ -103,17 +104,19 @@ class TensorNetwork:
 
     @use_deep_copy
     # self.out_edges is incorrect after application
-    def partial_contract_by_name(self, node_name_1: str, node_name_2: str) -> Optional[tuple[TensorNetwork, str]]:
+    def partial_contract_by_name(self, node_name_1: str, node_name_2: str, new_node_name=None) -> Optional[tuple[TensorNetwork, str]]:
         """
         finds the edge connecting two nodes and contracts it
 
         :param node_name_1:
         :param node_name_2:
+        :param new_node_name:
         :return: new TensorNetwork, name of new node ('node_name_1+node_name_2')
         """
         node1, node2 = (next((node for node in self.init_states + self.nodes if node.name == node_name), None) for node_name in (node_name_1, node_name_2))
         assert node1 and node2
-        new_node_name = f"{node_name_1}+{node_name_2}"
+        if new_node_name is None:
+            new_node_name = f"{node_name_1}+{node_name_2}"
 
         node1_ind = self.nodes.index(node1)
         node2_ind = self.nodes.index(node2)
@@ -139,8 +142,6 @@ class TensorNetwork:
         subgraph_out_edges += [(i + len(subgraph_in_edges), node1_edges[len(node1_edges) // 2:][sorted(list(node1_inds)).index(i)]) for i in sorted(list((node1_inds.union(node2_inds)).difference(node2_inds)))]
 
         oeo = [e[1] for e in sorted(subgraph_in_edges + subgraph_out_edges, key=lambda x: x[0])]
-        print(node1, node2)
-        print(oeo)
         new_node = tn.contract_between(node1, node2, name=new_node_name, output_edge_order=oeo)
         i = self.nodes.index(node1)
         self.gate_locations.update({new_node_name: node1_inds.union(node2_inds)})
@@ -269,7 +270,23 @@ class TensorNetwork:
             else:
                 label = node.name
             qc.unitary(self.adapter.unpack(node.tensor.T), self.gate_locations.get(node.name), label=label)
+
         return qc
+
+    @use_deep_copy
+    def enlarge_gates_with_id(self) -> TensorNetwork:
+        old_names = [node.name for node in self.nodes]
+        qc = QuantumCircuit(self.num_qubits)
+        for node in self.nodes:
+            label = node.name
+            qc.unitary(self.adapter.unpack(node.tensor.T), self.gate_locations.get(node.name), label=label)
+            qc.unitary(np.eye(2**self.num_qubits), [_ for _ in range(self.num_qubits)], label='id')
+
+        t_n = TensorNetwork(self.num_qubits, adapter=QiskitAdapter(qc))
+
+        for i in range(0, len(t_n.nodes)//2):
+            t_n, _ = t_n.partial_contract_by_name(t_n.nodes[i].name, t_n.nodes[i+1].name, new_node_name=old_names[i])
+        return t_n
 
 
 def color_text(s: str, color) -> str:
