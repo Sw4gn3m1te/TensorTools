@@ -60,11 +60,12 @@ while True:
         qc = t_n.to_qiskit_circuit()
 
     elif op == "s":
+        num_shots = input("choose number of shots for simulation\n")
         qc_t = t_n.to_qiskit_circuit()
         qc_t.measure_all()
         qc_t = transpile(qc_t, simulator)
         print(qc_t)
-        job = simulator.run(qc_t, shots=1000, memory=True)
+        job = simulator.run(qc_t, shots=num_shots, memory=True)
         data = sorted(job.result().get_memory(qc_t))
         fig, ax = mpl.subplots(1, 1)
         ax.hist(data)

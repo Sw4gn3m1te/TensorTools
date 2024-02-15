@@ -7,7 +7,7 @@
 
 | option | function      | description                                                           |
 |--------|---------------|-----------------------------------------------------------------------|
-| s      | simulation    | simulates the quantum circuit using AER with 100 shots                |
+| s      | simulation    | simulates the quantum circuit using AER                               |
 | c      | contract      | contracts two nodes by name, the nodes must be connected and adjacent |
 | f      | collapse      | fully contracts the circuit into a single node                        |
 | l      | enlarge       | enlarges each tensor to cover all qubits by contraction with id gate  |

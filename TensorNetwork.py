@@ -17,7 +17,13 @@ warnings.filterwarnings("ignore")
 np.set_printoptions(linewidth=np.inf)
 
 
-colors = {"red": "\u001b[38;5;1m", "orange": "\u001b[38;5;208m", "yellow": "\u001b[38;5;11m", "green": "\u001b[38;5;10m", "blue": "\u001b[38;5;12m", "default": "\u001b[0;39m"}
+colors = {"red": "\u001b[38;5;1m", "orange": "\u001b[38;5;208m", "yellow": "\u001b[38;5;11m",
+          "green": "\u001b[38;5;10m", "blue": "\u001b[38;5;12m", "default": "\u001b[0;39m"}
+
+
+def color_text(s: str, color) -> str:
+    return colors.get(color) + s + colors.get("default")
+
 
 def use_deep_copy(func):
 
@@ -273,7 +279,6 @@ class TensorNetwork:
 
         return qc
 
-    @use_deep_copy
     def enlarge_gates_with_id(self) -> TensorNetwork:
         old_names = [node.name for node in self.nodes]
         qc = QuantumCircuit(self.num_qubits)
@@ -288,6 +293,7 @@ class TensorNetwork:
             t_n, _ = t_n.partial_contract_by_name(t_n.nodes[i].name, t_n.nodes[i+1].name, new_node_name=old_names[i])
         return t_n
 
-
-def color_text(s: str, color) -> str:
-    return colors.get(color) + s + colors.get("default")
+    def get_finite_mps(self):
+        t_n = self.enlarge_gates_with_id()
+        mps = tn.FiniteMPS([node.tensor for node in t_n.nodes], canonicalize=False)
+        return mps
