@@ -8,4 +8,4 @@ qc = QuantumCircuit(nqb)
 qc.h(0)
 qc.x(0)
 
-tn = TensorNetwork(nqb, adapter=QiskitAdapter(qc))
+tn = TensorNetwork(adapter=QiskitAdapter(qc))

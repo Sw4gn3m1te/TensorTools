@@ -38,16 +38,16 @@ def use_deep_copy(func):
         return func(*args_copy, **kwargs_copy)
     return wrapper
 
+
 # REMARK: would be nice if TensorNetwork overrides __str__ magic method in order to print out the network in CLI
-# REMARK: would be nice to have a get_names method or similar
-# REMARK: constructor shall just take a circuit and an adapter (not number of qubits as this is redundant information)
 class TensorNetwork:
 
-    def __init__(self, num_qubits: int, init_qubits=None, adapter: QiskitAdapter = None):
+    def __init__(self, init_qubits=None, adapter: QiskitAdapter = None):
         self.nodes = []
         self.edges = []
-        self.num_qubits = num_qubits
-        self.init_states = [tn.Node(TensorNetwork.get_zero_qb(1), name=f"IQb_{i}") for i in range(num_qubits)]
+        self.adapter = adapter
+        self.num_qubits = self.adapter.qc.num_qubits
+        self.init_states = [tn.Node(TensorNetwork.get_zero_qb(1), name=f"IQb_{i}") for i in range(self.num_qubits)]
         if not init_qubits:
             self.init_qubits = [istate[0] for istate in self.init_states]
         else:
@@ -55,8 +55,13 @@ class TensorNetwork:
         self.out_edges = []
         self.in_edges = []
         self.gate_locations = {}
-        self.adapter = adapter
         self.populate_with_data()
+
+    def get_node_names(self) -> list[str]:
+        return [node.name for node in self.nodes]
+
+    def get_node_tensors(self) -> list[np.array]:
+        return [node.tensor for node in self.nodes]
 
     def populate_with_data(self):
         """
@@ -289,7 +294,7 @@ class TensorNetwork:
             qc.unitary(self.adapter.unpack(node.tensor.T), self.gate_locations.get(node.name), label=label)
             qc.unitary(np.eye(2**self.num_qubits), [_ for _ in range(self.num_qubits)], label='id')
 
-        t_n = TensorNetwork(self.num_qubits, adapter=QiskitAdapter(qc))
+        t_n = TensorNetwork(adapter=QiskitAdapter(qc))
 
         for i in range(0, len(t_n.nodes)//2):
             t_n, _ = t_n.partial_contract_by_name(t_n.nodes[i].name, t_n.nodes[i+1].name, new_node_name=old_names[i])

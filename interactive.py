@@ -29,7 +29,7 @@ qc.cx(0, 1)
 qc_reset = qc.copy()
 
 print(qc, "\n")
-t_n = TensorNetwork(nqb, adapter=QiskitAdapter(qc))
+t_n = TensorNetwork(adapter=QiskitAdapter(qc))
 qc = t_n.to_qiskit_circuit()
 while True:
     print(qc, "\n")
@@ -83,7 +83,7 @@ while True:
 
     elif op == "r":
         qc = qc_reset.copy()
-        t_n = TensorNetwork(nqb, adapter=QiskitAdapter(qc))
+        t_n = TensorNetwork(adapter=QiskitAdapter(qc))
         qc = t_n.to_qiskit_circuit()
         print("resetting...\n")
 
