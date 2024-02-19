@@ -1,3 +1,4 @@
 ./idea
 qc.json
 qc_out.json
+*.pyc

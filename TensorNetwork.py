@@ -38,7 +38,9 @@ def use_deep_copy(func):
         return func(*args_copy, **kwargs_copy)
     return wrapper
 
-
+# REMARK: would be nice if TensorNetwork overrides __str__ magic method in order to print out the network in CLI
+# REMARK: would be nice to have a get_names method or similar
+# REMARK: constructor shall just take a circuit and an adapter (not number of qubits as this is redundant information)
 class TensorNetwork:
 
     def __init__(self, num_qubits: int, init_qubits=None, adapter: QiskitAdapter = None):
