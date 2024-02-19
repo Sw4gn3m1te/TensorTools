@@ -166,7 +166,7 @@ class TensorNetwork:
 
     def get_node_by_name(self, name: str) -> tn.AbstractNode:
         """
-        getter for nodes by name
+        getter for a node by name
 
         :param name:
         """
@@ -276,6 +276,13 @@ class TensorNetwork:
         return t, new_name
 
     def to_qiskit_circuit(self, color: str = None) -> QuantumCircuit:
+
+        """
+        transforms this TensorNetwork object into a qiskit QuantumCircuit
+
+        :param color:
+        """
+
         qc = QuantumCircuit(self.num_qubits)
         for node in self.nodes:
             if color in ["red", "orange", "yellow", "green", "blue"]:
@@ -287,6 +294,13 @@ class TensorNetwork:
         return qc
 
     def enlarge_gates_with_id(self) -> TensorNetwork:
+
+        """
+        Enlarges each gate by contracting it with an Identity gate covering all qubits
+        (the Identity gates and the gates from the tn are inserted into a new network and then each pair is contracted)
+
+        """
+
         old_names = [node.name for node in self.nodes]
         qc = QuantumCircuit(self.num_qubits)
         for node in self.nodes:

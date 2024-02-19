@@ -51,16 +51,21 @@
 <li><a class="reference internal" href="#TensorNetwork.TensorNetwork"><code class="docutils literal notranslate"><span class="pre">TensorNetwork</span></code></a><ul>
 <li><a class="reference internal" href="#TensorNetwork.TensorNetwork.contract_backwards"><code class="docutils literal notranslate"><span class="pre">TensorNetwork.contract_backwards()</span></code></a></li>
 <li><a class="reference internal" href="#TensorNetwork.TensorNetwork.draw_comparison_diagram"><code class="docutils literal notranslate"><span class="pre">TensorNetwork.draw_comparison_diagram()</span></code></a></li>
-<li><a class="reference internal" href="#TensorNetwork.TensorNetwork.fully_contract"><code class="docutils literal notranslate"><span class="pre">TensorNetwork.fully_contract()</span></code></a></li>
+<li><a class="reference internal" href="#TensorNetwork.TensorNetwork.enlarge_gates_with_id"><code class="docutils literal notranslate"><span class="pre">TensorNetwork.enlarge_gates_with_id()</span></code></a></li>
 <li><a class="reference internal" href="#TensorNetwork.TensorNetwork.get_diff_tensor"><code class="docutils literal notranslate"><span class="pre">TensorNetwork.get_diff_tensor()</span></code></a></li>
+<li><a class="reference internal" href="#TensorNetwork.TensorNetwork.get_finite_mps"><code class="docutils literal notranslate"><span class="pre">TensorNetwork.get_finite_mps()</span></code></a></li>
+<li><a class="reference internal" href="#TensorNetwork.TensorNetwork.get_fully_contracted_network_as_node"><code class="docutils literal notranslate"><span class="pre">TensorNetwork.get_fully_contracted_network_as_node()</span></code></a></li>
 <li><a class="reference internal" href="#TensorNetwork.TensorNetwork.get_graph"><code class="docutils literal notranslate"><span class="pre">TensorNetwork.get_graph()</span></code></a></li>
 <li><a class="reference internal" href="#TensorNetwork.TensorNetwork.get_node_by_name"><code class="docutils literal notranslate"><span class="pre">TensorNetwork.get_node_by_name()</span></code></a></li>
+<li><a class="reference internal" href="#TensorNetwork.TensorNetwork.get_node_names"><code class="docutils literal notranslate"><span class="pre">TensorNetwork.get_node_names()</span></code></a></li>
+<li><a class="reference internal" href="#TensorNetwork.TensorNetwork.get_node_tensors"><code class="docutils literal notranslate"><span class="pre">TensorNetwork.get_node_tensors()</span></code></a></li>
 <li><a class="reference internal" href="#TensorNetwork.TensorNetwork.get_zero_qb"><code class="docutils literal notranslate"><span class="pre">TensorNetwork.get_zero_qb()</span></code></a></li>
 <li><a class="reference internal" href="#TensorNetwork.TensorNetwork.partial_contract_by_name"><code class="docutils literal notranslate"><span class="pre">TensorNetwork.partial_contract_by_name()</span></code></a></li>
 <li><a class="reference internal" href="#TensorNetwork.TensorNetwork.perform_svd_on_node"><code class="docutils literal notranslate"><span class="pre">TensorNetwork.perform_svd_on_node()</span></code></a></li>
 <li><a class="reference internal" href="#TensorNetwork.TensorNetwork.populate_with_data"><code class="docutils literal notranslate"><span class="pre">TensorNetwork.populate_with_data()</span></code></a></li>
 <li><a class="reference internal" href="#TensorNetwork.TensorNetwork.qiskit_circuit_to_unitary"><code class="docutils literal notranslate"><span class="pre">TensorNetwork.qiskit_circuit_to_unitary()</span></code></a></li>
 <li><a class="reference internal" href="#TensorNetwork.TensorNetwork.simulate_and_draw_result_comparison"><code class="docutils literal notranslate"><span class="pre">TensorNetwork.simulate_and_draw_result_comparison()</span></code></a></li>
+<li><a class="reference internal" href="#TensorNetwork.TensorNetwork.to_qiskit_circuit"><code class="docutils literal notranslate"><span class="pre">TensorNetwork.to_qiskit_circuit()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -123,10 +128,10 @@
 <span id="module-TensorNetwork"></span><h3>TensorNetwork.py<a class="headerlink" href="#tensornetwork-py" title="Link to this heading"></a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="TensorNetwork.TensorNetwork">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">TensorNetwork.</span></span><span class="sig-name descname"><span class="pre">TensorNetwork</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_qubits</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">init_qubits</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adapter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#QiskitAdapter.QiskitAdapter" title="QiskitAdapter.QiskitAdapter"><span class="pre">QiskitAdapter</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/TensorNetwork.html#TensorNetwork"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#TensorNetwork.TensorNetwork" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">TensorNetwork.</span></span><span class="sig-name descname"><span class="pre">TensorNetwork</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">init_qubits</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adapter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#QiskitAdapter.QiskitAdapter" title="QiskitAdapter.QiskitAdapter"><span class="pre">QiskitAdapter</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/TensorNetwork.html#TensorNetwork"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#TensorNetwork.TensorNetwork" title="Link to this definition"></a></dt>
 <dd><dl class="py method">
 <dt class="sig sig-object py" id="TensorNetwork.TensorNetwork.contract_backwards">
-<span class="sig-name descname"><span class="pre">contract_backwards</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">array</span></span></span><a class="reference internal" href="_modules/TensorNetwork.html#TensorNetwork.contract_backwards"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#TensorNetwork.TensorNetwork.contract_backwards" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">contract_backwards</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#TensorNetwork.TensorNetwork" title="TensorNetwork.TensorNetwork"><span class="pre">TensorNetwork</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/TensorNetwork.html#TensorNetwork.contract_backwards"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#TensorNetwork.TensorNetwork.contract_backwards" title="Link to this definition"></a></dt>
 <dd><p>uses TensorNetwork.partial_contract_by_name to contract the entire network starting from the back</p>
 </dd></dl>
 
@@ -136,14 +141,10 @@
 <dd></dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="TensorNetwork.TensorNetwork.fully_contract">
-<span class="sig-name descname"><span class="pre">fully_contract</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">remove_inputs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">AbstractNode</span></span></span><a class="reference internal" href="_modules/TensorNetwork.html#TensorNetwork.fully_contract"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#TensorNetwork.TensorNetwork.fully_contract" title="Link to this definition"></a></dt>
-<dd><p>contracts the entire network into a single node (currently using auto contractor)</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>remove_inputs</strong> – remove input qubits if connected to the network</p>
-</dd>
-</dl>
+<dt class="sig sig-object py" id="TensorNetwork.TensorNetwork.enlarge_gates_with_id">
+<span class="sig-name descname"><span class="pre">enlarge_gates_with_id</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#TensorNetwork.TensorNetwork" title="TensorNetwork.TensorNetwork"><span class="pre">TensorNetwork</span></a></span></span><a class="reference internal" href="_modules/TensorNetwork.html#TensorNetwork.enlarge_gates_with_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#TensorNetwork.TensorNetwork.enlarge_gates_with_id" title="Link to this definition"></a></dt>
+<dd><p>Enlarges each gate by contracting it with an Identity gate covering all qubits
+(the Identity gates and the gates from the tn are inserted into a new network and then each pair is contracted)</p>
 </dd></dl>
 
 <dl class="py method">
@@ -165,6 +166,17 @@
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="TensorNetwork.TensorNetwork.get_finite_mps">
+<span class="sig-name descname"><span class="pre">get_finite_mps</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/TensorNetwork.html#TensorNetwork.get_finite_mps"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#TensorNetwork.TensorNetwork.get_finite_mps" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="TensorNetwork.TensorNetwork.get_fully_contracted_network_as_node">
+<span class="sig-name descname"><span class="pre">get_fully_contracted_network_as_node</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">AbstractNode</span></span></span><a class="reference internal" href="_modules/TensorNetwork.html#TensorNetwork.get_fully_contracted_network_as_node"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#TensorNetwork.TensorNetwork.get_fully_contracted_network_as_node" title="Link to this definition"></a></dt>
+<dd><p>contracts the entire network into a single node (currently using auto contractor)</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="TensorNetwork.TensorNetwork.get_graph">
 <span class="sig-name descname"><span class="pre">get_graph</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/TensorNetwork.html#TensorNetwork.get_graph"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#TensorNetwork.TensorNetwork.get_graph" title="Link to this definition"></a></dt>
 <dd></dd></dl>
@@ -172,7 +184,7 @@
 <dl class="py method">
 <dt class="sig sig-object py" id="TensorNetwork.TensorNetwork.get_node_by_name">
 <span class="sig-name descname"><span class="pre">get_node_by_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">AbstractNode</span></span></span><a class="reference internal" href="_modules/TensorNetwork.html#TensorNetwork.get_node_by_name"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#TensorNetwork.TensorNetwork.get_node_by_name" title="Link to this definition"></a></dt>
-<dd><p>getter for nodes by name</p>
+<dd><p>getter for a node by name</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>name</strong> – </p>
@@ -181,19 +193,30 @@
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="TensorNetwork.TensorNetwork.get_node_names">
+<span class="sig-name descname"><span class="pre">get_node_names</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/TensorNetwork.html#TensorNetwork.get_node_names"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#TensorNetwork.TensorNetwork.get_node_names" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="TensorNetwork.TensorNetwork.get_node_tensors">
+<span class="sig-name descname"><span class="pre">get_node_tensors</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">array</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/TensorNetwork.html#TensorNetwork.get_node_tensors"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#TensorNetwork.TensorNetwork.get_node_tensors" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="TensorNetwork.TensorNetwork.get_zero_qb">
 <em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_zero_qb</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/TensorNetwork.html#TensorNetwork.get_zero_qb"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#TensorNetwork.TensorNetwork.get_zero_qb" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="TensorNetwork.TensorNetwork.partial_contract_by_name">
-<span class="sig-name descname"><span class="pre">partial_contract_by_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node_name_1</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_name_2</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#TensorNetwork.TensorNetwork" title="TensorNetwork.TensorNetwork"><span class="pre">TensorNetwork</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/TensorNetwork.html#TensorNetwork.partial_contract_by_name"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#TensorNetwork.TensorNetwork.partial_contract_by_name" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">partial_contract_by_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node_name_1</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">node_name_2</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_node_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#TensorNetwork.TensorNetwork" title="TensorNetwork.TensorNetwork"><span class="pre">TensorNetwork</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference internal" href="_modules/TensorNetwork.html#TensorNetwork.partial_contract_by_name"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#TensorNetwork.TensorNetwork.partial_contract_by_name" title="Link to this definition"></a></dt>
 <dd><p>finds the edge connecting two nodes and contracts it</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>node_name_1</strong> – </p></li>
 <li><p><strong>node_name_2</strong> – </p></li>
+<li><p><strong>new_node_name</strong> – </p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -251,6 +274,17 @@
 <li><p><strong>qc2</strong> – </p></li>
 <li><p><strong>shots</strong> – </p></li>
 </ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="TensorNetwork.TensorNetwork.to_qiskit_circuit">
+<span class="sig-name descname"><span class="pre">to_qiskit_circuit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">color</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">QuantumCircuit</span></span></span><a class="reference internal" href="_modules/TensorNetwork.html#TensorNetwork.to_qiskit_circuit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#TensorNetwork.TensorNetwork.to_qiskit_circuit" title="Link to this definition"></a></dt>
+<dd><p>transforms this TensorNetwork object into a qiskit QuantumCircuit</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>color</strong> – </p>
 </dd>
 </dl>
 </dd></dl>
